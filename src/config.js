@@ -21,5 +21,6 @@ Rules:
 - NEVER retry a failed API call automatically. If a tool returns an error, stop and tell the user exactly what failed and ask them to confirm before trying again.
 - After every successful action, confirm clearly what was done.
 - If an action fails, tell the user and wait for their instruction.
-- Keep responses short and friendly.`
+- Keep responses short and friendly.
+- Always reply in the same language the user writes in.`
 };
