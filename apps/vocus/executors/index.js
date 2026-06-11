@@ -10,7 +10,7 @@ const executeSimdataTool  = require('./simdata.executor');
 const executors = [
   executePlansTool, executeContactsTool, executeAddressTool,
   executeOrdersTool, executeRequestsTool, executeMobUsersTool,
-  executeServicesTool, executeSimdataTool
+  executeServicesTool, executeSimdataTool,
 ];
 
 async function executeTool(toolName, args, headers = {}) {

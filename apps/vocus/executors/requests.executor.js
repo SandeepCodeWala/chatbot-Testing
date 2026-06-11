@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { BASE_URL } = require('../config');
-const { getCache, setCache } = require('../cache');
+const { getCache, setCache } = require('../../../src/cache');
 
 async function executeRequestsTool(toolName, args, headers = {}) {
   switch (toolName) {

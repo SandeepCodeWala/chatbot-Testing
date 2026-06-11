@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { BASE_URL } = require('../config');
-const { getCache, setCache, clearCache } = require('../cache');
+const { getCache, setCache, clearCache } = require('../../../src/cache');
 
 async function executeAddressTool(toolName, args, headers = {}) {
   switch (toolName) {

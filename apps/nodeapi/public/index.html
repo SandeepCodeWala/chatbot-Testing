@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NodeAPI Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary:  #18181B;
+      --accent:   #16A34A;
+      --accent2:  #15803D;
+      --cyan:     #4ADE80;
+      --cyan2:    #22C55E;
+      --light:    #F0FDF4;
+      --border:   #E2E8F0;
+      --muted:    #6B7280;
+      --text:     #111827;
+      --sub:      #9CA3AF;
+      --white:    #ffffff;
+      --radius:   12px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #F0FDF4;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, #16A34A18 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .shell {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 800px; height: 95vh;
+      background: var(--white);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 40px rgba(22,163,74,0.10), 0 2px 8px rgba(22,163,74,0.06);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--primary);
+      padding: 0 20px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo {
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px; color: white;
+    }
+    .brand-name {
+      font-weight: 700; font-size: 17px; color: white; letter-spacing: -0.3px;
+    }
+    .brand-tag {
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.75);
+      font-size: 10px; font-weight: 600;
+      padding: 3px 9px; border-radius: 20px;
+      letter-spacing: 0.8px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .header-right { display: flex; align-items: center; gap: 8px; }
+
+    .toggle {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 30px; padding: 3px; gap: 2px;
+    }
+    .tog {
+      border: none; cursor: pointer;
+      padding: 5px 14px; border-radius: 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+      transition: all 0.2s; color: rgba(255,255,255,0.55);
+      background: transparent;
+    }
+    .tog.active { background: var(--accent); color: white; }
+
+    .hdr-btn {
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.75); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: background 0.2s;
+    }
+    .hdr-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Module tabs ── */
+    .mod-bar {
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; gap: 0; overflow-x: auto; flex-shrink: 0;
+      background: var(--white);
+    }
+    .mod-bar::-webkit-scrollbar { display: none; }
+    .mod-tab {
+      padding: 10px 16px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
+      color: var(--sub); cursor: pointer; white-space: nowrap;
+      border-bottom: 2px solid transparent; transition: all 0.18s;
+      background: none; border-top: none; border-left: none; border-right: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .mod-tab:hover  { color: var(--accent); }
+    .mod-tab.active { color: var(--accent); border-bottom-color: var(--cyan); font-weight: 700; }
+
+    /* ── Messages ── */
+    .messages {
+      flex: 1; overflow-y: auto;
+      padding: 20px 18px; display: flex; flex-direction: column; gap: 14px;
+      background: var(--light);
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg { display: flex; gap: 10px; align-items: flex-end; animation: fadeUp 0.25s ease; }
+    .msg.user { flex-direction: row-reverse; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .av {
+      width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .msg.bot  .av { background: var(--accent); color: white; }
+    .msg.user .av { background: var(--cyan);   color: var(--primary); }
+
+    .msg-body { display: flex; flex-direction: column; max-width: 72%; }
+    .msg.user .msg-body { align-items: flex-end; }
+
+    .provider-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.8px;
+      padding: 2px 7px; border-radius: 20px; margin-bottom: 4px;
+    }
+    .chip-groq   { background: #E6FBF7; color: #007A68; border: 1px solid #9FDED7; }
+    .chip-claude { background: #EEF0FF; color: #3730A3; border: 1px solid #C7CAF5; }
+    .chip-openai { background: #FFF8EE; color: #B45309; border: 1px solid #FCD49A; }
+
+    .bubble {
+      padding: 11px 14px; border-radius: 14px;
+      font-size: 13.5px; line-height: 1.65;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .msg.bot .bubble {
+      background: var(--white); border: 1px solid var(--border);
+      color: var(--text); border-bottom-left-radius: 4px;
+    }
+    .msg.user .bubble {
+      background: var(--accent); color: white; border-bottom-right-radius: 4px;
+    }
+    .msg-time { font-size: 10px; color: var(--sub); margin-top: 4px; padding: 0 2px; }
+
+    /* typing */
+    .typing-dots { display: flex; align-items: center; gap: 5px; padding: 14px 16px; }
+    .typing-dots span {
+      width: 6px; height: 6px; border-radius: 50%;
+      animation: dotBounce 1.3s ease-in-out infinite;
+    }
+    .typing-dots span:nth-child(1) { background: var(--accent); }
+    .typing-dots span:nth-child(2) { background: var(--accent); animation-delay: 0.2s; opacity: 0.7; }
+    .typing-dots span:nth-child(3) { background: var(--cyan2);  animation-delay: 0.4s; }
+    @keyframes dotBounce {
+      0%,80%,100% { transform: translateY(0) scale(1); }
+      40%          { transform: translateY(-5px) scale(1.1); }
+    }
+
+    .sys-note {
+      text-align: center; font-size: 10px; color: var(--sub);
+      letter-spacing: 0.4px; padding: 2px 0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sys-note::before, .sys-note::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Quick actions ── */
+    .quick-bar {
+      padding: 8px 16px 6px;
+      display: flex; gap: 6px; flex-wrap: wrap;
+      border-top: 1px solid var(--border);
+      background: var(--white); flex-shrink: 0;
+    }
+    .q-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px; font-weight: 500;
+      padding: 5px 12px; border-radius: 20px;
+      border: 1px solid var(--border); color: var(--muted);
+      background: var(--white); cursor: pointer; transition: all 0.18s;
+    }
+    .q-btn:hover { background: var(--light); border-color: var(--accent); color: var(--accent); }
+
+    /* ── Input ── */
+    .input-row {
+      padding: 10px 16px 14px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 10px; align-items: flex-end;
+      background: var(--white); flex-shrink: 0;
+    }
+    textarea {
+      flex: 1; resize: none;
+      background: var(--light); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 10px 14px;
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      color: var(--text); outline: none;
+      min-height: 44px; max-height: 110px; overflow-y: auto;
+      line-height: 1.5; transition: border-color 0.2s, background 0.2s;
+    }
+    textarea:focus {
+      border-color: var(--accent); background: var(--white);
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.07);
+    }
+    textarea::placeholder { color: var(--sub); }
+
+    .send-btn {
+      width: 44px; height: 44px; border-radius: var(--radius); flex-shrink: 0;
+      background: var(--cyan); border: none; cursor: pointer;
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(74,222,128,0.35);
+    }
+    .send-btn:hover   { background: var(--cyan2); box-shadow: 0 4px 14px rgba(74,222,128,0.45); transform: translateY(-1px); }
+    .send-btn:active  { transform: scale(0.96) translateY(0); }
+    .send-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #FEF2F2; border: 1px solid #FCA5A5;
+      color: #B91C1C; font-size: 12px; font-family: 'Inter', sans-serif;
+      padding: 9px 18px; border-radius: var(--radius-sm);
+      display: none; z-index: 999; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(185,28,28,0.12);
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-logo">N</div>
+      <span class="brand-name">NodeAPI</span>
+      <span class="brand-tag">AI ASSISTANT</span>
+    </div>
+    <div class="header-right">
+      <div class="toggle">
+        <button class="tog active" id="btn-groq"   onclick="setProvider('groq')">⚡ Groq</button>
+        <button class="tog"        id="btn-openai" onclick="setProvider('openai')">◈ OpenAI</button>
+        <button class="tog"        id="btn-claude" onclick="setProvider('claude')">✦ Claude</button>
+      </div>
+      <button class="hdr-btn" onclick="clearChat()" title="Clear chat">↺</button>
+    </div>
+  </div>
+
+  <!-- Module tabs -->
+  <div class="mod-bar">
+    <button class="mod-tab active" onclick="switchMod('all',this)">ALL</button>
+    <button class="mod-tab"        onclick="switchMod('auth',this)">AUTH</button>
+    <button class="mod-tab"        onclick="switchMod('users',this)">USERS</button>
+    <button class="mod-tab"        onclick="switchMod('friends',this)">FRIENDS</button>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages" id="messages">
+    <div class="msg bot">
+      <div class="av">N</div>
+      <div class="msg-body">
+        <span class="provider-chip chip-groq" id="welcomeChip">● GROQ</span>
+        <div class="bubble">Hi! I'm your <strong>NodeAPI Assistant</strong>.<br><br>I can help you with:<br>› Sign up &amp; Login<br>› View all users or a specific user<br>› Check your own profile<br>› Manage your friends — add, view, update, delete<br><br><strong>Start by logging in</strong> to unlock all features!</div>
+        <div class="msg-time">Just now</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="quick-bar" id="quickBar"></div>
+
+  <!-- Input -->
+  <div class="input-row">
+    <textarea id="input" placeholder="Ask anything..." rows="1"
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let chatHistory    = [];
+  let isLoading      = false;
+  let activeProvider = 'groq';
+  let activeMod      = 'all';
+
+  const modQuicks = {
+    all:     ['Login', 'Show all users', 'My profile', 'Show my friends', 'Sign up'],
+    auth:    ['Login with my account', 'Sign up as a new user'],
+    users:   ['Show all users', 'My profile', 'Get user by ID'],
+    friends: ['Show my friends', 'Add a friend', 'Update a friend', 'Delete a friend'],
+  };
+
+  function renderQuick() {
+    const bar = document.getElementById('quickBar');
+    bar.innerHTML = '';
+    (modQuicks[activeMod] || []).forEach(label => {
+      const b = document.createElement('button');
+      b.className = 'q-btn'; b.textContent = label;
+      b.onclick = () => quickSend(label);
+      bar.appendChild(b);
+    });
+  }
+
+  function switchMod(mod, el) {
+    activeMod = mod;
+    document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderQuick();
+  }
+
+  function setProvider(p) {
+    activeProvider = p;
+    ['groq','openai','claude'].forEach(x =>
+      document.getElementById('btn-' + x).classList.toggle('active', x === p)
+    );
+    const chip = document.getElementById('welcomeChip');
+    if (chip) { chip.textContent = '● ' + p.toUpperCase(); chip.className = `provider-chip chip-${p}`; }
+    chatHistory = [];
+    appendSysNote(`Switched to ${p} · History cleared`);
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  }
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+  function quickSend(t) { document.getElementById('input').value = t; sendMessage(); }
+  function scrollBottom() {
+    const el = document.getElementById('messages');
+    requestAnimationFrame(() => el.scrollTop = el.scrollHeight);
+  }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 4000);
+  }
+  function timeNow() {
+    return new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+  }
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function clearChat() {
+    chatHistory = [];
+    document.getElementById('messages').innerHTML = `
+      <div class="msg bot">
+        <div class="av">N</div>
+        <div class="msg-body">
+          <span class="provider-chip chip-${activeProvider}" id="welcomeChip">● ${activeProvider.toUpperCase()}</span>
+          <div class="bubble">Session cleared. How can I help you?</div>
+          <div class="msg-time">${timeNow()}</div>
+        </div>
+      </div>`;
+  }
+  function appendSysNote(text) {
+    const msgs = document.getElementById('messages');
+    const el = document.createElement('div');
+    el.className = 'sys-note'; el.textContent = text;
+    msgs.appendChild(el); scrollBottom();
+  }
+  function appendMessage(role, text, provider) {
+    const msgs = document.getElementById('messages');
+    const wrapper = document.createElement('div');
+    wrapper.className = `msg ${role}`;
+    if (role === 'bot') {
+      wrapper.innerHTML = `
+        <div class="av">N</div>
+        <div class="msg-body">
+          <span class="provider-chip chip-${provider || activeProvider}">● ${(provider || activeProvider).toUpperCase()}</span>
+          <div class="bubble">${esc(text).replace(/\n/g,'<br>')}</div>
+          <div class="msg-time">${timeNow()}</div>
+        </div>`;
+    } else {
+      wrapper.innerHTML = `
+        <div class="msg-body">
+          <div class="bubble">${esc(text)}</div>
+          <div class="msg-time">${timeNow()}</div>
+        </div>
+        <div class="av">U</div>`;
+    }
+    msgs.appendChild(wrapper); scrollBottom();
+  }
+  function showTyping() {
+    const msgs = document.getElementById('messages');
+    const w = document.createElement('div');
+    w.className = 'msg bot'; w.id = 'typing-indicator';
+    w.innerHTML = `
+      <div class="av">N</div>
+      <div class="msg-body">
+        <div class="bubble typing-dots"><span></span><span></span><span></span></div>
+      </div>`;
+    msgs.appendChild(w); scrollBottom();
+  }
+  function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
+
+  async function sendMessage() {
+    const input = document.getElementById('input');
+    const text  = input.value.trim();
+    if (!text || isLoading) return;
+    appendMessage('user', text);
+    input.value = ''; input.style.height = 'auto';
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+    showTyping();
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: chatHistory, provider: activeProvider, module: activeMod })
+      });
+      const data = await res.json();
+      removeTyping();
+      if (!res.ok) {
+        showToast(data.error || 'Request failed');
+        appendMessage('bot', '⚠ ' + (data.error || 'Something went wrong. Please try again.'));
+      } else {
+        appendMessage('bot', data.reply, data.provider);
+        chatHistory = data.history;
+      }
+    } catch {
+      removeTyping();
+      showToast('Cannot reach server');
+      appendMessage('bot', 'Connection failed. Is the server running?');
+    } finally {
+      isLoading = false;
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('input').focus();
+    }
+  }
+
+  renderQuick();
+</script>
+</body>
+</html>
