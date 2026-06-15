@@ -1,0 +1,16 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:10.000
+NodeAPI Assistant demo. The chatbot interface opens showing provider toggle buttons for Groq, OpenAI, and Claude at the top.
+
+00:00:10.000 --> 00:00:30.000
+User types a login request. The assistant makes a live HTTPS API call to the auth endpoint and returns a success response with a session token.
+
+00:00:30.000 --> 00:01:00.000
+User asks to view all users. The assistant calls the users REST endpoint and displays a formatted list of registered users.
+
+00:01:00.000 --> 00:01:30.000
+User requests their own profile. The assistant fetches the profile via HTTPS and shows the user's details.
+
+00:01:30.000 --> 00:02:00.000
+User adds a friend. The assistant sends a POST request to the friends endpoint and confirms the action. Friend management — view, update, delete — is also demonstrated.

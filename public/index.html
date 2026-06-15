@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ChatForge — Custom AI Chatbots for Your Business</title>
   <meta name="description" content="We build custom AI chatbots powered by Groq, Claude & OpenAI — integrated with your business APIs. Try the live demo."/>
+  <link rel="icon" type="image/png" href="/logo.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
   <style>
@@ -44,7 +45,7 @@
     /* ── NAV ── */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      height: 60px;
+      height: 72px;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 32px;
       background: rgba(255,255,255,0.92);
@@ -53,16 +54,13 @@
     }
 
     .nav-logo {
-      display: flex; align-items: center; gap: 9px;
+      display: flex; align-items: center;
       text-decoration: none; color: var(--ink);
     }
     .logo-mark {
-      width: 32px; height: 32px;
+      height: 62px; width: auto;
       flex-shrink: 0;
-    }
-    .logo-text {
-      font-size: 17px; font-weight: 800;
-      letter-spacing: -0.5px; color: var(--ink);
+      object-fit: contain;
     }
 
     .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
@@ -94,7 +92,7 @@
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
       text-align: center;
-      padding: 120px 24px 80px;
+      padding: 132px 24px 80px;
       background: var(--bg);
     }
     .hero-inner { max-width: 820px; }
@@ -205,8 +203,15 @@
       background: var(--bg);
       padding: 32px 28px;
       transition: background 0.2s;
+      position: relative;
     }
     .feat-card:hover { background: var(--bg2); }
+    .feat-card.feat-hot { background: #fafff9; }
+    .feat-card.feat-hot:hover { background: #f0fdf4; }
+    .feat-card.feat-hot::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: #16a34a;
+    }
 
     .feat-num {
       font-size: 11px; font-weight: 700; color: var(--sub);
@@ -214,6 +219,15 @@
     }
     .feat-card h3 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
     .feat-card p  { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+    .feat-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.6px;
+      padding: 3px 9px; border-radius: 20px; margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+    .feat-badge-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .feat-badge-blue  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .feat-badge-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 
     /* ── HOW IT WORKS ── */
     .steps-grid {
@@ -231,11 +245,6 @@
     }
     .step h3 { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
     .step p  { font-size: 14px; color: var(--muted); line-height: 1.7; }
-
-    .steps-connector {
-      display: flex; align-items: center; gap: 0;
-      margin-bottom: 56px;
-    }
 
     /* ── DEMO ── */
     #demo { background: var(--bg2); }
@@ -268,155 +277,13 @@
       background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
       color: rgba(255,255,255,0.7); padding: 2px 8px; border-radius: 20px;
     }
-    .d-right { display: flex; align-items: center; gap: 8px; }
 
-    /* Provider toggle */
-    .d-toggle {
-      display: flex; align-items: center;
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 30px; padding: 3px; gap: 2px;
+    /* Video player */
+    .demo-video {
+      width: 100%; display: block;
+      background: #0a0a0a;
+      max-height: 480px; object-fit: contain;
     }
-    .d-tog {
-      border: none; cursor: pointer;
-      padding: 4px 12px; border-radius: 20px;
-      font-family: 'Inter', sans-serif;
-      font-size: 10.5px; font-weight: 600;
-      transition: all 0.18s;
-      color: rgba(255,255,255,0.45); background: transparent;
-    }
-    .d-tog.active { background: rgba(255,255,255,0.95); color: var(--ink); }
-
-    .d-clear {
-      width: 28px; height: 28px; border-radius: var(--r-sm);
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.6); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; transition: background 0.18s;
-    }
-    .d-clear:hover { background: rgba(255,255,255,0.2); }
-
-    /* Module tabs */
-    .d-modbar {
-      display: flex; overflow-x: auto;
-      border-bottom: 1px solid var(--border);
-      padding: 0 14px; background: var(--bg);
-    }
-    .d-modbar::-webkit-scrollbar { display: none; }
-    .d-modtab {
-      padding: 9px 14px;
-      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
-      color: var(--sub); cursor: pointer; white-space: nowrap;
-      border-bottom: 2px solid transparent; transition: all 0.18s;
-      background: none; border-top: none; border-left: none; border-right: none;
-      font-family: 'Inter', sans-serif;
-    }
-    .d-modtab:hover  { color: var(--ink); }
-    .d-modtab.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 700; }
-
-    /* Messages */
-    .d-msgs {
-      height: 360px; overflow-y: auto;
-      padding: 20px 18px; display: flex; flex-direction: column; gap: 14px;
-      background: var(--bg2);
-    }
-    .d-msgs::-webkit-scrollbar { width: 3px; }
-    .d-msgs::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-    .dm { display: flex; gap: 9px; align-items: flex-end; animation: msgIn 0.25s ease; }
-    .dm.user { flex-direction: row-reverse; }
-    @keyframes msgIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .dm-av {
-      width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700;
-    }
-    .dm.bot  .dm-av { background: var(--ink); color: #fff; }
-    .dm.user .dm-av { background: var(--border2); color: var(--ink); font-size: 11px; }
-
-    .dm-body { display: flex; flex-direction: column; max-width: 76%; }
-    .dm.user .dm-body { align-items: flex-end; }
-
-    .dm-chip { font-size: 10px; color: var(--sub); margin-bottom: 5px; padding: 0 2px; font-weight: 500; }
-
-    .dm-bubble {
-      padding: 11px 14px; border-radius: 14px;
-      font-size: 13.5px; line-height: 1.65;
-      white-space: pre-wrap; word-break: break-word;
-    }
-    .dm.bot .dm-bubble {
-      background: var(--bg); border: 1px solid var(--border);
-      color: var(--ink); border-bottom-left-radius: 4px;
-    }
-    .dm.user .dm-bubble {
-      background: var(--ink); color: #fff; border-bottom-right-radius: 4px;
-    }
-    .dm-time { font-size: 10px; color: var(--sub); margin-top: 4px; padding: 0 2px; }
-
-    /* Typing */
-    .typing-wrap { display: flex; align-items: center; gap: 5px; padding: 12px 14px; }
-    .typing-wrap span {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--border2);
-      animation: bounce 1.3s infinite ease-in-out;
-    }
-    .typing-wrap span:nth-child(2) { animation-delay: 0.18s; }
-    .typing-wrap span:nth-child(3) { animation-delay: 0.36s; }
-    @keyframes bounce {
-      0%,80%,100% { transform: translateY(0); background: var(--border2); }
-      40%          { transform: translateY(-5px); background: var(--ink2); }
-    }
-
-    .d-sysline {
-      text-align: center; font-size: 10.5px; color: var(--sub);
-      display: flex; align-items: center; gap: 8px;
-    }
-    .d-sysline::before, .d-sysline::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-
-    /* Quick actions */
-    .d-quick {
-      padding: 10px 14px 8px; display: flex; gap: 7px; flex-wrap: wrap;
-      border-top: 1px solid var(--border); background: var(--bg);
-    }
-    .d-qbtn {
-      font-family: 'Inter', sans-serif;
-      font-size: 11.5px; font-weight: 500;
-      padding: 5px 13px; border-radius: 20px;
-      border: 1px solid var(--border2);
-      color: var(--muted); background: var(--bg2);
-      cursor: pointer; transition: all 0.18s; white-space: nowrap;
-    }
-    .d-qbtn:hover { border-color: var(--ink); color: var(--ink); background: var(--bg); }
-
-    /* Input */
-    .d-input-row {
-      padding: 10px 14px 14px; display: flex; gap: 10px; align-items: flex-end;
-      border-top: 1px solid var(--border); background: var(--bg);
-    }
-    .d-textarea {
-      flex: 1; resize: none;
-      background: var(--bg2); border: 1.5px solid var(--border);
-      border-radius: var(--r); padding: 10px 14px;
-      font-family: 'Inter', sans-serif; font-size: 14px; color: var(--ink);
-      outline: none; min-height: 44px; max-height: 100px; overflow-y: auto;
-      line-height: 1.5; transition: border-color 0.2s;
-    }
-    .d-textarea:focus { border-color: var(--ink); background: var(--bg); }
-    .d-textarea::placeholder { color: var(--sub); }
-
-    .d-send {
-      width: 44px; height: 44px; border-radius: var(--r); flex-shrink: 0;
-      background: var(--ink); border: none; cursor: pointer; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 700; transition: all 0.2s;
-    }
-    .d-send:hover   { background: #222; transform: translateY(-1px); }
-    .d-send:active  { transform: scale(0.95); }
-    .d-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
     .demo-note {
       text-align: center; margin-top: 14px;
@@ -518,7 +385,7 @@
       .nav-links.open a { width: 100%; padding: 11px 14px; }
       .hamburger { display: flex; }
       .section { padding: 72px 20px; }
-      .hero { padding: 100px 20px 64px; }
+      .hero { padding: 112px 20px 64px; }
       .hero h1 { letter-spacing: -2px; }
       .hero-stats { flex-direction: column; }
       .stat { border-right: none; border-bottom: 1px solid var(--border); }
@@ -534,15 +401,7 @@
 <!-- ── NAV ── -->
 <nav>
   <a href="#" class="nav-logo">
-    <!-- SVG Logo -->
-    <svg class="logo-mark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="8" fill="#0a0a0a"/>
-      <path d="M7 9.5C7 8.67 7.67 8 8.5 8h15C24.33 8 25 8.67 25 9.5v9c0 .83-.67 1.5-1.5 1.5H18l-4 4v-4H8.5C7.67 24 7 23.33 7 22.5v-13z" fill="white"/>
-      <circle cx="11.5" cy="15" r="1.5" fill="#0a0a0a"/>
-      <circle cx="16" cy="15" r="1.5" fill="#0a0a0a"/>
-      <circle cx="20.5" cy="15" r="1.5" fill="#0a0a0a"/>
-    </svg>
-    <span class="logo-text">ChatForge</span>
+    <img src="/logo.png" class="logo-mark" alt="ChatForge — Talk. Query. Build."/>
   </a>
   <button class="hamburger" id="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
@@ -563,7 +422,7 @@
     <h1>AI Chatbots that<br><em>actually work.</em></h1>
     <p class="hero-sub">Stop losing customers to slow replies. A smart AI chatbot handles your queries, automates tasks, and connects to your backend APIs — <strong>24/7, without a team.</strong> I build them custom for your business, fast and affordable.</p>
     <div class="hero-btns">
-      <a href="#demo" class="btn-black">Try Live Demo ↓</a>
+      <a href="#demo" class="btn-black">Watch Demo ↓</a>
       <a href="#contact" class="btn-outline">Get a Quote →</a>
     </div>
     <div class="hero-stats fade-in">
@@ -581,41 +440,51 @@
 <section class="section" id="features">
   <div class="section-inner">
     <div class="section-head fade-in">
-      <span class="section-tag">Features</span>
-      <h2 class="section-title">Everything included.</h2>
-      <p class="section-sub">From a simple FAQ bot to a complex multi-tool AI agent — we build it exactly how you need it.</p>
+      <span class="section-tag">Why ChatForge Wins</span>
+      <h2 class="section-title">Real API calls. Real savings.<br>Real results.</h2>
+      <p class="section-sub">Not just a chat widget — a fully integrated AI agent that makes live HTTPS API calls, keeps costs near zero, and works 24/7 for your business.</p>
     </div>
     <div class="features-grid fade-in">
-      <div class="feat-card">
+
+      <div class="feat-card feat-hot">
+        <span class="feat-badge feat-badge-green">⚡ Core Feature</span>
         <div class="feat-num">01</div>
-        <h3>Multi-LLM Support</h3>
-        <p>Choose Groq (ultra-fast), Claude (smartest reasoning), or OpenAI — or switch on demand. Your bot, your model.</p>
+        <h3>Live HTTPS API Calls While Chatting</h3>
+        <p>Every message triggers real HTTPS requests to your backend — signup, login, fetch users, manage data. Pure REST endpoints, zero mocking, zero fake responses.</p>
       </div>
-      <div class="feat-card">
+
+      <div class="feat-card feat-hot">
+        <span class="feat-badge feat-badge-green">🆓 Free Tier</span>
         <div class="feat-num">02</div>
-        <h3>API Integration</h3>
-        <p>Connect your existing backend, database, or third-party APIs. The bot fetches, creates, and updates data in real time.</p>
+        <h3>Free Chat Bot — No API Key Needed</h3>
+        <p>No API budget? Start for free with our built-in suggestion bot. Smart guided responses at zero cost — upgrade to full AI when you're ready to scale.</p>
       </div>
-      <div class="feat-card">
+
+      <div class="feat-card feat-hot">
+        <span class="feat-badge feat-badge-amber">💸 Save Money</span>
         <div class="feat-num">03</div>
-        <h3>Lightning Fast Responses</h3>
-        <p>Powered by Groq's inference engine — responses in under a second. No waiting, no frustration for your users.</p>
+        <h3>Ultra-Low Cost Per API Call</h3>
+        <p>Groq's LPU inference costs up to 10× less than GPT-4. Serve hundreds of concurrent users without a surprise bill — more conversations, less spend.</p>
       </div>
+
       <div class="feat-card">
         <div class="feat-num">04</div>
-        <h3>Built-in Security</h3>
-        <p>Rate limiting, input validation, and API key rotation out of the box. Enterprise-grade safety from day one.</p>
+        <h3>Switch AI Models Live</h3>
+        <p>Toggle between Groq (fastest), Claude (smartest reasoning), and OpenAI GPT-4o mid-conversation. One backend, three world-class AI brains on demand.</p>
       </div>
+
       <div class="feat-card">
         <div class="feat-num">05</div>
-        <h3>Smart Response Cache</h3>
-        <p>Repeated queries return instantly from cache — cutting your API costs and delivering faster responses automatically.</p>
+        <h3>Enterprise-Grade Security</h3>
+        <p>Rate limiting, input validation, and automatic API key rotation out of the box. Your users' data is protected from day one — no extra config needed.</p>
       </div>
+
       <div class="feat-card">
         <div class="feat-num">06</div>
-        <h3>Any Use Case</h3>
-        <p>Customer support, sales assistant, booking bot, internal tool — we build for your exact workflow, not a template.</p>
+        <h3>Built for Your Business</h3>
+        <p>E-commerce, healthcare, SaaS, HR tools — every bot is built from scratch for your exact workflow and APIs. Not a template. Not a copy-paste.</p>
       </div>
+
     </div>
   </div>
 </section>
@@ -652,69 +521,31 @@
 
 <hr class="divider"/>
 
-<!-- ── LIVE DEMO ── -->
+<!-- ── DEMO VIDEO ── -->
 <section class="section" id="demo">
   <div class="section-inner">
     <div class="section-head fade-in" style="text-align:center;max-width:560px;margin:0 auto 48px;">
-      <span class="section-tag">Live Demo</span>
-      <h2 class="section-title">Try it right now.</h2>
-      <p class="section-sub">This is a real AI bot connected to a real API — sign up, log in, manage users & friends. Not a mockup.</p>
+      <span class="section-tag">Demo Video</span>
+      <h2 class="section-title">See it in action.</h2>
+      <p class="section-sub">Watch a real AI bot connected to a real API — sign up, log in, manage users &amp; friends. Not a mockup.</p>
     </div>
 
     <div class="demo-shell fade-in">
-
-      <!-- Topbar -->
       <div class="d-topbar">
         <div class="d-brand">
           <div class="d-brand-icon">🤖</div>
           <span class="d-brand-name">NodeAPI Assistant</span>
-          <span class="d-brand-badge">LIVE DEMO</span>
-        </div>
-        <div class="d-right">
-          <div class="d-toggle">
-            <button class="d-tog active" id="dtog-groq"   onclick="demoSetProvider('groq')">⚡ Groq</button>
-            <button class="d-tog"        id="dtog-openai" onclick="demoSetProvider('openai')">◈ OpenAI</button>
-            <button class="d-tog"        id="dtog-claude" onclick="demoSetProvider('claude')">✦ Claude</button>
-          </div>
-          <button class="d-clear" onclick="demoClearChat()" title="Clear">↺</button>
+          <span class="d-brand-badge">DEMO VIDEO</span>
         </div>
       </div>
-
-      <!-- Module tabs -->
-      <div class="d-modbar">
-        <button class="d-modtab active" onclick="demoSwitchMod('all',this)">ALL</button>
-        <button class="d-modtab"        onclick="demoSwitchMod('auth',this)">AUTH</button>
-        <button class="d-modtab"        onclick="demoSwitchMod('users',this)">USERS</button>
-        <button class="d-modtab"        onclick="demoSwitchMod('friends',this)">FRIENDS</button>
-      </div>
-
-      <!-- Messages -->
-      <div class="d-msgs" id="demoMsgs">
-        <div class="dm bot">
-          <div class="dm-av">CF</div>
-          <div class="dm-body">
-            <div class="dm-chip">NodeAPI Assistant · Just now</div>
-            <div class="dm-bubble">Hi! I'm your <strong>NodeAPI Assistant</strong>.<br><br>I can help you with:<br>› Sign up &amp; Login<br>› View all users or a specific user<br>› Check your own profile<br>› Manage friends — add, view, update, delete<br><br><strong>Start by logging in</strong> to unlock all features!</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick actions -->
-      <div class="d-quick" id="demoQuick"></div>
-
-      <!-- Input -->
-      <div class="d-input-row">
-        <textarea
-          class="d-textarea" id="demoInput" rows="1"
-          placeholder="Ask anything..."
-          onkeydown="handleDemoKey(event)"
-          oninput="autoResize(this)"
-        ></textarea>
-        <button class="d-send" id="demoSend" onclick="sendDemo()">↑</button>
-      </div>
-
+      <video class="demo-video" controls preload="metadata">
+        <source src="/videodemo.mp4" type="video/mp4"/>
+        <track kind="descriptions" src="/demo-description.vtt" srclang="en" label="Description" default/>
+        <p>Your browser does not support HTML5 video. <a href="/videodemo.mp4">Download the demo</a>.</p>
+      </video>
     </div>
-    <p class="demo-note">⚡ Groq-powered · First message may take ~10s if server is sleeping (Render free tier)</p>
+
+    <p class="demo-note">📹 Full walkthrough — signup, login, users &amp; friends via real API calls</p>
   </div>
 </section>
 
@@ -777,14 +608,7 @@
 <footer>
   <div class="footer-inner">
     <a href="#" class="footer-logo">
-      <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-        <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.15)"/>
-        <path d="M7 9.5C7 8.67 7.67 8 8.5 8h15C24.33 8 25 8.67 25 9.5v9c0 .83-.67 1.5-1.5 1.5H18l-4 4v-4H8.5C7.67 24 7 23.33 7 22.5v-13z" fill="white"/>
-        <circle cx="11.5" cy="15" r="1.5" fill="rgba(0,0,0,0.5)"/>
-        <circle cx="16" cy="15" r="1.5" fill="rgba(0,0,0,0.5)"/>
-        <circle cx="20.5" cy="15" r="1.5" fill="rgba(0,0,0,0.5)"/>
-      </svg>
-      <span>ChatForge</span>
+      <img src="/logo.png" alt="ChatForge" style="height:40px;width:auto;object-fit:contain;filter:invert(1);opacity:0.85;"/>
     </a>
     <p>© 2026 ChatForge. Custom AI Chatbots.</p>
     <div class="footer-links">
@@ -797,47 +621,7 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Demo alert modal -->
-<div id="demoAlertOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#fff;border-radius:16px;padding:36px 32px;max-width:400px;width:100%;text-align:center;box-shadow:0 24px 48px rgba(0,0,0,0.18);position:relative;">
-    <div style="width:52px;height:52px;background:#f3f4f6;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;">🔒</div>
-    <h3 style="font-size:18px;font-weight:800;color:#0a0a0a;letter-spacing:-0.5px;margin-bottom:10px;">Demo Only on Groq</h3>
-    <p style="font-size:14px;color:#6b7280;line-height:1.65;margin-bottom:28px;">The live demo runs on <strong style="color:#0a0a0a;">Groq only</strong>.<br>For a demo with <strong style="color:#0a0a0a;">OpenAI or Claude</strong>, contact us and we'll set it up for you.</p>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <a href="https://wa.me/918533079368?text=Hi%2C%20I%20want%20a%20demo%20with%20OpenAI%20or%20Claude." target="_blank" rel="noopener"
-        style="display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;font-weight:700;font-size:13.5px;padding:11px 22px;border-radius:50px;text-decoration:none;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Contact Us
-      </a>
-      <button onclick="closeDemoAlert()"
-        style="background:transparent;border:1.5px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13.5px;padding:11px 22px;border-radius:50px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;"
-        onmouseover="this.style.borderColor='#0a0a0a';this.style.color='#0a0a0a'"
-        onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">
-        Stay on Groq
-      </button>
-    </div>
-  </div>
-</div>
-
 <script>
-  const API_URL      = 'https://chatbot-testing-expk.onrender.com/chat';
-  const PING_URL     = 'https://chatbot-testing-expk.onrender.com/provider';
-
-  let demoHistory  = [];
-  let demoLoading  = false;
-  let demoProvider = 'groq';
-  let demoMod      = 'all';
-
-  /* Silent ping on page load — wakes up Render server early */
-  fetch(PING_URL).catch(() => {});
-
-  const modQuicks = {
-    all:     ['Login', 'Show all users', 'My profile', 'Show my friends', 'Sign up'],
-    auth:    ['Login with my account', 'Sign up as a new user'],
-    users:   ['Show all users', 'My profile', 'Get user by ID'],
-    friends: ['Show my friends', 'Add a friend', 'Update a friend', 'Delete a friend'],
-  };
-
   /* ── Nav ── */
   function toggleMenu() {
     document.getElementById('navLinks').classList.toggle('open');
@@ -857,188 +641,6 @@
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-  /* ── Helpers ── */
-  function showToast(msg, err) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast' + (err ? ' err' : '');
-    t.style.display = 'block';
-    clearTimeout(t._t);
-    t._t = setTimeout(() => { t.style.display = 'none'; }, 4500);
-  }
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
-  }
-  function timeNow() {
-    return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-  }
-  function esc(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-  function scrollDemo() {
-    const el = document.getElementById('demoMsgs');
-    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
-  }
-
-  /* ── Quick actions ── */
-  function renderDemoQuick() {
-    const bar = document.getElementById('demoQuick');
-    bar.innerHTML = '';
-    (modQuicks[demoMod] || []).forEach(label => {
-      const b = document.createElement('button');
-      b.className = 'd-qbtn'; b.textContent = label;
-      b.onclick = () => quickAsk(label);
-      bar.appendChild(b);
-    });
-  }
-
-  /* ── Module / Provider ── */
-  function demoSwitchMod(mod, el) {
-    demoMod = mod;
-    document.querySelectorAll('.d-modtab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    renderDemoQuick();
-  }
-  function showDemoAlert() {
-    const overlay = document.getElementById('demoAlertOverlay');
-    overlay.style.display = 'flex';
-  }
-  function closeDemoAlert() {
-    document.getElementById('demoAlertOverlay').style.display = 'none';
-  }
-  document.getElementById('demoAlertOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeDemoAlert();
-  });
-
-  function demoSetProvider(p) {
-    if (p === 'openai' || p === 'claude') {
-      showDemoAlert();
-      return;
-    }
-    demoProvider = p;
-    ['groq','openai','claude'].forEach(x =>
-      document.getElementById('dtog-' + x).classList.toggle('active', x === p)
-    );
-    demoHistory = [];
-    appendSys('Switched to ' + p.toUpperCase() + ' · History cleared');
-  }
-  function demoClearChat() {
-    demoHistory = [];
-    document.getElementById('demoMsgs').innerHTML = `
-      <div class="dm bot">
-        <div class="dm-av">CF</div>
-        <div class="dm-body">
-          <div class="dm-chip">NodeAPI Assistant · ${timeNow()}</div>
-          <div class="dm-bubble">Session cleared. How can I help you?</div>
-        </div>
-      </div>`;
-  }
-
-  /* ── Messages ── */
-  function appendMsg(role, text) {
-    const msgs = document.getElementById('demoMsgs');
-    const wrap = document.createElement('div');
-    wrap.className = `dm ${role}`;
-    if (role === 'bot') {
-      wrap.innerHTML = `
-        <div class="dm-av">CF</div>
-        <div class="dm-body">
-          <div class="dm-chip">NodeAPI Assistant · ${timeNow()}</div>
-          <div class="dm-bubble">${esc(text).replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
-        </div>`;
-    } else {
-      wrap.innerHTML = `
-        <div class="dm-body" style="align-items:flex-end">
-          <div class="dm-bubble">${esc(text)}</div>
-          <div class="dm-time">${timeNow()}</div>
-        </div>
-        <div class="dm-av">U</div>`;
-    }
-    msgs.appendChild(wrap);
-    scrollDemo();
-  }
-  function appendSys(text) {
-    const msgs = document.getElementById('demoMsgs');
-    const el = document.createElement('div');
-    el.className = 'd-sysline'; el.textContent = text;
-    msgs.appendChild(el); scrollDemo();
-  }
-  function showTyping() {
-    const msgs = document.getElementById('demoMsgs');
-    const w = document.createElement('div');
-    w.className = 'dm bot'; w.id = 'typing';
-    w.innerHTML = `
-      <div class="dm-av">CF</div>
-      <div class="dm-body">
-        <div class="dm-bubble typing-wrap"><span></span><span></span><span></span></div>
-      </div>`;
-    msgs.appendChild(w); scrollDemo();
-  }
-  function removeTyping() { document.getElementById('typing')?.remove(); }
-
-  /* ── Send ── */
-  async function sendDemo() {
-    const input = document.getElementById('demoInput');
-    const text  = input.value.trim();
-    if (!text || demoLoading) return;
-
-    appendMsg('user', text);
-    input.value = ''; input.style.height = 'auto';
-    demoLoading = true;
-    document.getElementById('demoSend').disabled = true;
-    showTyping();
-
-    const payload = JSON.stringify({ message: text, history: demoHistory, provider: demoProvider, module: demoMod });
-
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        });
-        const data = await res.json();
-        removeTyping();
-
-        if (!res.ok) {
-          showToast(data.error || 'Something went wrong', true);
-          appendMsg('bot', '⚠ ' + (data.error || 'Something went wrong. Please try again.'));
-        } else {
-          appendMsg('bot', data.reply);
-          demoHistory = data.history || [];
-        }
-        break;
-
-      } catch {
-        if (attempt < 3) {
-          removeTyping();
-          appendSys('Server waking up… retrying in 6s (' + attempt + '/3)');
-          await new Promise(r => setTimeout(r, 6000));
-          showTyping();
-        } else {
-          removeTyping();
-          showToast('Server unavailable — please try again shortly.', true);
-          appendMsg('bot', '⚠ Server is taking too long. Please wait a moment and try again.');
-        }
-      }
-    }
-
-    demoLoading = false;
-    document.getElementById('demoSend').disabled = false;
-    document.getElementById('demoInput').focus();
-  }
-
-  function handleDemoKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDemo(); }
-  }
-  function quickAsk(text) {
-    const input = document.getElementById('demoInput');
-    input.value = text; autoResize(input); sendDemo();
-  }
-
-  renderDemoQuick();
 </script>
 </body>
 </html>

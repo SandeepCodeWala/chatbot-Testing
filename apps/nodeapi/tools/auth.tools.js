@@ -8,7 +8,7 @@ module.exports = [
         name:     { type: 'string',  description: 'Full name of the user' },
         email:    { type: 'string',  description: 'Email address' },
         password: { type: 'string',  description: 'Password (min 6 characters)' },
-        age:      { type: 'integer', description: 'Age of the user' },
+        age:      { type: 'string', description: 'Age of the user as a number, e.g. "25"' },
       },
       required: ['name', 'email', 'password', 'age'],
     },
