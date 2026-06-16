@@ -150,15 +150,48 @@
     .btn-outline:hover { border-color: var(--ink); background: var(--bg2); }
 
     .hero-stats {
-      display: flex; justify-content: center;
+      display: flex; justify-content: center; flex-wrap: wrap;
       border: 1px solid var(--border); border-radius: var(--r);
-      overflow: hidden; max-width: 520px; margin: 0 auto;
+      overflow: hidden; max-width: 660px; margin: 0 auto;
       background: var(--bg2);
     }
-    .stat { flex: 1; min-width: 120px; padding: 18px 16px; text-align: center; border-right: 1px solid var(--border); }
+    .stat { flex: 1; min-width: 110px; padding: 18px 14px; text-align: center; border-right: 1px solid var(--border); }
     .stat:last-child { border-right: none; }
-    .stat-val { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -1px; }
+    .stat-val { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -1px; }
     .stat-label { font-size: 11px; color: var(--sub); margin-top: 3px; font-weight: 500; }
+
+    /* ── PROMO STRIP ── */
+    .promo-strip {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+    }
+    .promo-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    }
+    .promo-label-main {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      color: var(--sub); text-transform: uppercase; white-space: nowrap;
+      margin-right: 4px; flex-shrink: 0;
+    }
+    .promo-card {
+      flex: 1; min-width: 240px;
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 14px 18px;
+      text-decoration: none; color: var(--ink);
+      transition: all 0.2s;
+    }
+    .promo-card:hover { border-color: var(--ink); background: var(--bg); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .promo-icon { font-size: 24px; flex-shrink: 0; }
+    .promo-text { flex: 1; }
+    .promo-tag { display: block; font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--sub); text-transform: uppercase; margin-bottom: 2px; }
+    .promo-title { display: block; font-size: 13px; font-weight: 700; color: var(--ink); }
+    .promo-sub { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+    .promo-arrow { font-size: 18px; color: var(--border2); flex-shrink: 0; transition: transform 0.2s; }
+    .promo-card:hover .promo-arrow { transform: translateX(3px); color: var(--ink); }
 
     /* ── DIVIDER ── */
     .divider {
@@ -430,6 +463,7 @@
       <div class="stat"><div class="stat-val">&lt;1s</div><div class="stat-label">Response Time</div></div>
       <div class="stat"><div class="stat-val">48h</div><div class="stat-label">Delivery</div></div>
       <div class="stat"><div class="stat-val">24/7</div><div class="stat-label">Always On</div></div>
+      <div class="stat"><div class="stat-val" id="visitorCount">—</div><div class="stat-label">Visitors</div></div>
     </div>
   </div>
 </section>
@@ -583,6 +617,33 @@
   </div>
 </section>
 
+<!-- ── PROMO STRIP ── -->
+<div class="promo-strip">
+  <div class="promo-inner">
+    <span class="promo-label-main">Also from us →</span>
+
+    <a href="https://jsquestion.in/" class="promo-card" target="_blank" rel="noopener">
+      <div class="promo-icon">💡</div>
+      <div class="promo-text">
+        <span class="promo-tag">Free Website</span>
+        <span class="promo-title">JSQuestion.in</span>
+        <span class="promo-sub">JavaScript interview questions & answers — free forever</span>
+      </div>
+      <span class="promo-arrow">→</span>
+    </a>
+
+    <a href="https://play.google.com/store/apps/details?id=com.jsquestion&hl=en" class="promo-card" target="_blank" rel="noopener">
+      <div class="promo-icon">📱</div>
+      <div class="promo-text">
+        <span class="promo-tag">Android App</span>
+        <span class="promo-title">JS Interview Prep App</span>
+        <span class="promo-sub">Practice on the go — available on Google Play Store</span>
+      </div>
+      <span class="promo-arrow">→</span>
+    </a>
+  </div>
+</div>
+
 <!-- ── CONTACT ── -->
 <section class="section" id="contact">
   <div class="section-inner">
@@ -591,11 +652,11 @@
       <h2 class="section-title">Ready to build?</h2>
       <p class="section-sub">Tell us what you need — we'll reply within 24 hours with a quote and timeline. No commitment required.</p>
       <div class="contact-btns">
-        <a href="https://wa.me/918533079368?text=Hi%2C%20I%20want%20a%20custom%20AI%20chatbot%20for%20my%20business." class="btn-wa" target="_blank" rel="noopener">
+        <a href="https://wa.me/918533079368?text=Hi%2C%20I%20want%20a%20custom%20AI%20chatbot%20for%20my%20business." class="btn-wa" target="_blank" rel="noopener" onclick="trackClick('whatsapp')">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           WhatsApp
         </a>
-        <a href="mailto:sandyrnjs@gmail.com?subject=Custom AI Chatbot Inquiry" class="btn-email">
+        <a href="mailto:sandyrnjs@gmail.com?subject=Custom AI Chatbot Inquiry" class="btn-email" onclick="trackClick('email')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
           Email Us
         </a>
@@ -641,6 +702,62 @@
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+<!-- ── FIREBASE FIRESTORE: Visitor & Click Tracking ── -->
+<script type="module">
+  import { initializeApp }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, doc, getDoc, setDoc, increment }
+                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const app = initializeApp({
+    apiKey:            'AIzaSyB24Kwiew39mE8BNrqf8ACvRnLf3RnlfdE',
+    authDomain:        'chatforge-d9e3c.firebaseapp.com',
+    projectId:         'chatforge-d9e3c',
+    storageBucket:     'chatforge-d9e3c.firebasestorage.app',
+    messagingSenderId: '516250561569',
+    appId:             '1:516250561569:web:2006d4e605e2ae19ae4760'
+  });
+
+  const isDev = ['localhost', '127.0.0.1'].includes(location.hostname);
+  const log   = (...a) => isDev && console.log('[ChatForge]', ...a);
+  const err   = (...a) => isDev && console.error('[ChatForge]', ...a);
+
+  log('Firebase initialized');
+  const db = getFirestore(app);
+
+  /* ── Track visitor & display count ── */
+  async function trackVisitor() {
+    log('Tracking visitor...');
+    const ref = doc(db, 'stats', 'visitors');
+    try {
+      await setDoc(ref, { total: increment(1) }, { merge: true });
+      log('Visitor increment OK');
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const n = snap.data().total || 0;
+        log('Visitor count:', n);
+        const el = document.getElementById('visitorCount');
+        if (el) el.textContent = n >= 1000 ? (n / 1000).toFixed(1) + 'k' : n;
+      }
+    } catch (e) {
+      err('Visitor tracking FAILED:', e.code, e.message);
+    }
+  }
+
+  /* ── Track button clicks (whatsapp / email) ── */
+  window.trackClick = async function(type) {
+    log('Click tracked:', type);
+    const ref = doc(db, 'stats', 'clicks');
+    try {
+      await setDoc(ref, { [type]: increment(1) }, { merge: true });
+      log('Click write OK:', type);
+    } catch (e) {
+      err('Click tracking FAILED:', e.code, e.message);
+    }
+  };
+
+  trackVisitor();
 </script>
 </body>
 </html>
