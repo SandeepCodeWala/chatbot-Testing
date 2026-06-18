@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+
+  <url>
+    <loc>https://chatforge.in/</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://chatforge.in/logo.png</image:loc>
+      <image:title>ChatForge — Custom AI Chatbots for Your Business</image:title>
+      <image:caption>ChatForge logo — Talk. Query. Build.</image:caption>
+    </image:image>
+    <video:video>
+      <video:thumbnail_loc>https://chatforge.in/logo.png</video:thumbnail_loc>
+      <video:title>ChatForge AI Chatbot Demo — Live HTTPS API Calls</video:title>
+      <video:description>Watch a real AI chatbot connected to a real REST API — signup, login, manage users and friends. Not a mockup.</video:description>
+      <video:content_loc>https://chatforge.in/videodemo.mp4</video:content_loc>
+    </video:video>
+  </url>
+
+</urlset>

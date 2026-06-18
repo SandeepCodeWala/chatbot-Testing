@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /firebase.json
+
+# Sitemap
+Sitemap: https://chatforge.in/sitemap.xml
