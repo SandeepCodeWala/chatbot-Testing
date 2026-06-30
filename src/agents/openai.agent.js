@@ -4,7 +4,8 @@ const { callWithRetry } = require('../key-manager');
 
 const OPENAI_MODEL = 'gpt-4o-mini';
 
-async function runOpenAIAgent(messages, headers = {}, tools, executeTool) {
+async function runOpenAIAgent(messages, headers = {}, tools, executeTool, opts = {}) {
+  const activePrompt = opts.systemPrompt || SYSTEM_PROMPT;
   const openaiTools = tools.map(t => ({
     type: 'function',
     function: { name: t.name, description: t.description, parameters: t.parameters },
@@ -18,7 +19,7 @@ async function runOpenAIAgent(messages, headers = {}, tools, executeTool) {
       const openai = new OpenAI({ apiKey });
       return openai.chat.completions.create({
         model:       OPENAI_MODEL,
-        messages:    [{ role: 'system', content: SYSTEM_PROMPT }, ...currentMessages],
+        messages:    [{ role: 'system', content: activePrompt }, ...currentMessages],
         tools:       openaiTools,
         tool_choice: 'auto',
         max_tokens:  1024,

@@ -3,9 +3,9 @@ const { CLAUDE_MODEL } = require('../config');
 const { SYSTEM_PROMPT } = require('../../apps/' + (process.env.APP || 'vocus') + '/config');
 const { callWithRetry } = require('../key-manager');
 
-const systemBlock = [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }];
-
-async function runClaudeAgent(messages, headers = {}, tools, executeTool) {
+async function runClaudeAgent(messages, headers = {}, tools, executeTool, opts = {}) {
+  const activePrompt = opts.systemPrompt || SYSTEM_PROMPT;
+  const systemBlock  = [{ type: 'text', text: activePrompt, cache_control: { type: 'ephemeral' } }];
   const claudeTools = tools.map((t, i) => {
     const tool = { name: t.name, description: t.description, input_schema: t.parameters };
     if (i === tools.length - 1) tool.cache_control = { type: 'ephemeral' };

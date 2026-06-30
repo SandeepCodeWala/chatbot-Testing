@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChatForge — Admin Panel</title>
+  <link rel="icon" type="image/png" href="/logo.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #ffffff;
+      --bg2:     #f7f7f7;
+      --bg3:     #f0f0f0;
+      --ink:     #0a0a0a;
+      --ink2:    #1a1a1a;
+      --muted:   #6b7280;
+      --sub:     #9ca3af;
+      --border:  #e5e7eb;
+      --border2: #d1d5db;
+      --accent:  #0a0a0a;
+      --red:     #dc2626;
+      --red-l:   #fef2f2;
+      --green:   #16a34a;
+      --green-l: #f0fdf4;
+      --r:       10px;
+      --r-sm:    7px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    /* ── LOGIN SCREEN ──────────────────────────────────────────────────────── */
+    .login-screen {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg); align-items: center; justify-content: center;
+    }
+    .login-screen.show { display: flex; }
+    .login-card {
+      width: 100%; max-width: 380px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 40px 36px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+    .login-logo {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--ink); display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .login-logo svg { width: 22px; height: 22px; }
+    .login-card h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .login-card p  { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .lf { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .lf label { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .lf input {
+      font-family: 'Inter', sans-serif; font-size: 13.5px;
+      border: 1.5px solid var(--border); border-radius: var(--r-sm);
+      padding: 10px 13px; outline: none; background: var(--bg);
+      color: var(--ink); transition: border-color 0.18s;
+    }
+    .lf input:focus { border-color: var(--ink); }
+    .login-err { font-size: 12px; color: var(--red); min-height: 18px; margin-bottom: 8px; }
+    .btn-black {
+      width: 100%; padding: 11px; border-radius: var(--r-sm);
+      background: var(--ink); color: #fff; border: none;
+      font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.18s; letter-spacing: -0.1px;
+    }
+    .btn-black:hover { opacity: 0.85; }
+    .btn-black:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── TOPBAR ────────────────────────────────────────────────────────────── */
+    .topbar {
+      height: 58px; background: var(--bg);
+      border-bottom: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; position: sticky; top: 0; z-index: 100;
+    }
+    .tb-left { display: flex; align-items: center; gap: 10px; }
+    .tb-logo {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: var(--ink); display: flex; align-items: center; justify-content: center;
+    }
+    .tb-logo svg { width: 15px; height: 15px; }
+    .tb-name  { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; }
+    .tb-sep   { width: 1px; height: 16px; background: var(--border); }
+    .tb-page  { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+    .tb-right { display: flex; align-items: center; gap: 8px; }
+    .s-pill {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11.5px; color: var(--sub); font-weight: 500;
+      background: var(--bg2); border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 5px 12px;
+    }
+    .s-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sub); }
+    .s-dot.live { background: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.15); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{box-shadow:0 0 0 2px rgba(22,163,74,0.15);}50%{box-shadow:0 0 0 5px rgba(22,163,74,0.07);} }
+    .btn-ghost {
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+      color: var(--muted); background: none; border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 6px 12px; cursor: pointer; text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--border2); color: var(--ink); background: var(--bg2); }
+
+    /* ── LAYOUT ────────────────────────────────────────────────────────────── */
+    .layout { display: flex; height: calc(100vh - 58px); }
+
+    /* ── SIDEBAR ───────────────────────────────────────────────────────────── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--bg); border-right: 1.5px solid var(--border);
+      display: flex; flex-direction: column; padding: 12px 8px;
+    }
+    .nav-section { font-size: 10px; font-weight: 700; color: var(--sub); letter-spacing: 0.8px; text-transform: uppercase; padding: 6px 10px 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      width: 100%; padding: 9px 10px; border-radius: var(--r-sm);
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--muted); background: none; border: none; cursor: pointer;
+      text-align: left; transition: all 0.15s; margin-bottom: 2px;
+    }
+    .nav-item:hover  { background: var(--bg2); color: var(--ink); }
+    .nav-item.active { background: var(--ink); color: #fff; font-weight: 600; }
+    .nav-item svg    { flex-shrink: 0; opacity: 0.6; }
+    .nav-item.active svg { opacity: 1; }
+    .nav-spacer { flex: 1; }
+    .nav-user {
+      margin-top: 4px; padding: 10px;
+      border-top: 1.5px solid var(--border);
+      font-size: 11.5px; color: var(--muted);
+    }
+    .nav-user strong { display: block; color: var(--ink); font-size: 12px; }
+
+    /* ── MAIN CONTENT ──────────────────────────────────────────────────────── */
+    .content { flex: 1; overflow-y: auto; }
+    .tab-pane { display: none; padding: 28px 30px; }
+    .tab-pane.active { display: block; }
+
+    /* ── PAGE HEADER ───────────────────────────────────────────────────────── */
+    .pg-hd { margin-bottom: 24px; }
+    .pg-hd h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 4px; }
+    .pg-hd p  { font-size: 13px; color: var(--muted); }
+
+    /* ── CARDS ─────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r); margin-bottom: 14px; overflow: hidden;
+    }
+    .card-hd {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 18px; border-bottom: 1.5px solid var(--border);
+      background: var(--bg2);
+    }
+    .card-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--bg3); display: flex; align-items: center; justify-content: center;
+    }
+    .card-hd-t h3 { font-size: 13px; font-weight: 700; }
+    .card-hd-t p  { font-size: 11.5px; color: var(--sub); margin-top: 1px; }
+    .card-body { padding: 18px; }
+
+    /* ── FORM FIELDS ───────────────────────────────────────────────────────── */
+    .fg  { display: grid; gap: 13px; }
+    .c2  { grid-template-columns: 1fr 1fr; }
+    .f   { display: flex; flex-direction: column; gap: 5px; }
+    .f label { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .req { color: var(--red); margin-left: 2px; }
+    .hint { font-size: 11px; color: var(--sub); }
+    input[type="text"], input[type="url"], input[type="password"], select, textarea {
+      font-family: 'Inter', sans-serif; font-size: 13px; color: var(--ink);
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 9px 12px;
+      outline: none; transition: border-color 0.18s; width: 100%;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--ink); }
+    input.bad { border-color: var(--red) !important; }
+    .mono { font-family: 'JetBrains Mono', monospace !important; font-size: 12px !important; }
+    select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+    }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+    /* ── ACTION BAR ────────────────────────────────────────────────────────── */
+    .action-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-top: 1.5px solid var(--border);
+      background: var(--bg);
+    }
+    .btn-save {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--ink); color: #fff; border: none; border-radius: var(--r-sm);
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+      padding: 9px 20px; cursor: pointer; transition: opacity 0.18s;
+    }
+    .btn-save:hover { opacity: 0.85; }
+    .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-run {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--bg2); color: var(--ink); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-run:hover { background: var(--bg3); }
+    .btn-del {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 6px;
+      background: none; color: var(--red); border: 1.5px solid #fecaca;
+      border-radius: var(--r-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      padding: 9px 14px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-del:hover { background: var(--red-l); }
+    .btn-outline {
+      display: flex; align-items: center; gap: 7px;
+      background: none; color: var(--ink); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-outline:hover { background: var(--bg2); }
+
+    /* ── DYNAMIC ROWS ──────────────────────────────────────────────────────── */
+    .dyn-list { display: flex; flex-direction: column; gap: 8px; }
+    .dyn-row {
+      display: grid; gap: 8px; align-items: start;
+      background: var(--bg2); border: 1.5px solid var(--border);
+      border-radius: 9px; padding: 10px 12px; transition: border-color 0.15s;
+    }
+    .dyn-row:hover { border-color: var(--border2); }
+    .hrow { grid-template-columns: 1fr 1fr 28px; }
+    .prow { grid-template-columns: 1fr 100px 80px 60px 1fr 28px; }
+    .dyn-row input, .dyn-row select { font-size: 12px; padding: 6px 9px; border-radius: 7px; }
+    .dl { font-size: 10px; font-weight: 700; color: var(--sub); letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 3px; }
+    .btn-rm {
+      width: 28px; height: 28px; border: none; border-radius: 7px;
+      background: var(--red-l); color: var(--red); font-size: 15px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+      flex-shrink: 0; align-self: center;
+    }
+    .btn-rm:hover { background: #fecaca; }
+    .btn-add-row {
+      width: 100%; margin-top: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+      color: var(--muted); background: none;
+      border: 1.5px dashed var(--border2); border-radius: 9px;
+      padding: 8px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-add-row:hover { background: var(--bg2); border-color: var(--border2); color: var(--ink); }
+
+    /* ── AUTH TABS ─────────────────────────────────────────────────────────── */
+    .auth-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .auth-tab  {
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      background: var(--bg2); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 6px 13px; cursor: pointer; transition: all 0.15s;
+    }
+    .auth-tab:hover { color: var(--ink); border-color: var(--border2); }
+    .auth-tab.on    { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    /* ── TEST PANEL ────────────────────────────────────────────────────────── */
+    .test-panel { background: var(--bg2); border: 1.5px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .test-top {
+      padding: 9px 14px; background: var(--bg);
+      border-bottom: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .test-url { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--sub); max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .test-body { padding: 14px; }
+    .test-params { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .t-row { display: grid; grid-template-columns: 130px 1fr; gap: 10px; align-items: center; }
+    .t-row label { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .t-no-params { font-size: 12px; color: var(--sub); font-style: italic; }
+    .t-result {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 12px;
+      max-height: 220px; overflow-y: auto; white-space: pre-wrap;
+      display: none; margin-top: 10px; color: var(--muted);
+    }
+    .t-result.show { display: block; }
+    .t-result.ok  { color: var(--green); border-color: #bbf7d0; background: var(--green-l); }
+    .t-result.err { color: var(--red);   border-color: #fecaca; background: var(--red-l); }
+
+    /* ── API LIST (sidebar) ────────────────────────────────────────────────── */
+    .apis-layout { display: flex; height: 100%; gap: 0; }
+    .apis-sidebar {
+      width: 260px; flex-shrink: 0;
+      border-right: 1.5px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+    .apis-sb-head { padding: 14px 14px 10px; border-bottom: 1.5px solid var(--border); }
+    .apis-sb-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .sb-label { font-size: 11px; font-weight: 700; color: var(--sub); letter-spacing: 0.8px; text-transform: uppercase; }
+    .cnt { min-width: 22px; height: 20px; padding: 0 7px; background: var(--bg3); color: var(--muted); font-size: 11px; font-weight: 700; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .btn-new {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--ink); color: #fff; border: none; border-radius: 8px;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+      padding: 9px 14px; cursor: pointer; transition: opacity 0.18s;
+    }
+    .btn-new:hover { opacity: 0.85; }
+    .sb-search { padding: 8px 10px; border-bottom: 1.5px solid var(--border); }
+    .srch-wrap { position: relative; }
+    .srch-ico  { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--sub); pointer-events: none; }
+    .srch-input {
+      width: 100%; background: var(--bg2); border: 1.5px solid var(--border);
+      border-radius: 7px; padding: 7px 10px 7px 30px;
+      color: var(--ink); font-size: 12px; font-family: 'Inter', sans-serif;
+      outline: none; transition: all 0.18s;
+    }
+    .srch-input:focus { border-color: var(--ink); background: var(--bg); }
+    .api-list { flex: 1; overflow-y: auto; padding: 6px; }
+    .api-item {
+      padding: 9px 11px; border-radius: 8px; cursor: pointer;
+      border: 1.5px solid transparent; transition: all 0.15s; margin-bottom: 2px;
+    }
+    .api-item:hover  { background: var(--bg2); border-color: var(--border); }
+    .api-item.active { background: var(--bg3); border-color: var(--border2); }
+    .ai-top  { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .mb { font-size: 9px; font-weight: 800; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 5px; flex-shrink: 0; }
+    .m-GET    { background: #dcfce7; color: #15803d; }
+    .m-POST   { background: #dbeafe; color: #1d4ed8; }
+    .m-PUT    { background: #fef9c3; color: #854d0e; }
+    .m-PATCH  { background: #f3e8ff; color: #7e22ce; }
+    .m-DELETE { background: var(--red-l); color: var(--red); }
+    .ai-name  { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+    .ai-desc  { font-size: 11px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sb-empty { padding: 32px 14px; text-align: center; }
+    .sb-empty p { font-size: 12px; color: var(--sub); line-height: 1.7; }
+    .apis-main { flex: 1; overflow-y: auto; padding: 24px 28px; }
+    .apis-main::-webkit-scrollbar { width: 4px; }
+    .welcome { max-width: 460px; margin: 60px auto; text-align: center; }
+    .w-icon { width: 64px; height: 64px; margin: 0 auto 18px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+    .welcome h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 8px; }
+    .welcome p  { font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+    .w-steps { margin-top: 22px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+    .w-step { display: flex; gap: 12px; align-items: flex-start; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 13px 15px; }
+    .sn { width: 24px; height: 24px; flex-shrink: 0; border-radius: 7px; background: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: white; }
+    .st { font-size: 13px; color: var(--muted); line-height: 1.55; }
+    .st strong { color: var(--ink); }
+
+    /* ── TABLE ─────────────────────────────────────────────────────────────── */
+    .tbl-wrap { overflow-x: auto; border: 1.5px solid var(--border); border-radius: var(--r); }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    thead th {
+      background: var(--bg2); padding: 10px 14px;
+      font-size: 11px; font-weight: 700; color: var(--sub); letter-spacing: 0.5px;
+      text-align: left; border-bottom: 1.5px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg2); }
+    tbody td { padding: 10px 14px; color: var(--ink); vertical-align: top; }
+    .td-muted { color: var(--muted); font-size: 11.5px; }
+    .td-clip { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge-up   { display: inline-flex; align-items: center; gap: 4px; background: var(--green-l); color: var(--green); border: 1px solid #bbf7d0; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    .badge-down { display: inline-flex; align-items: center; gap: 4px; background: var(--red-l); color: var(--red); border: 1px solid #fecaca; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    .empty-state { text-align: center; padding: 56px 20px; color: var(--sub); font-size: 13px; }
+    .empty-state p { margin-top: 8px; }
+
+    /* ── TOOLBAR ───────────────────────────────────────────────────────────── */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .toolbar input { max-width: 260px; font-size: 12.5px; }
+    .toolbar select { max-width: 130px; font-size: 12.5px; }
+
+    /* ── LOG EXPAND ─────────────────────────────────────────────────────────── */
+    .log-detail {
+      display: none; padding: 10px 14px 14px;
+      background: var(--bg2); border-top: 1px solid var(--border);
+    }
+    .log-detail.show { display: block; }
+    .ld-label { font-size: 10px; font-weight: 700; color: var(--sub); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px; }
+    .ld-text  { font-size: 13px; color: var(--ink); line-height: 1.65; white-space: pre-wrap; }
+
+    /* ── SYSTEM PROMPT TAB ─────────────────────────────────────────────────── */
+    .prompt-area { max-width: 780px; }
+    .prompt-box { font-family: 'JetBrains Mono', monospace !important; font-size: 12.5px !important; min-height: 340px; line-height: 1.75; }
+    .prompt-note { font-size: 12px; color: var(--sub); margin-top: 8px; }
+    .default-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--green); background: var(--green-l); border: 1px solid #bbf7d0; border-radius: 6px; padding: 3px 10px; }
+
+    /* ── TEST CHAT ─────────────────────────────────────────────────────────── */
+    .chat-layout { display: flex; flex-direction: column; height: calc(100vh - 58px); max-height: 780px; max-width: 740px; border: 1.5px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .chat-topbar { padding: 12px 18px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg2); }
+    .chat-topbar h3 { font-size: 13.5px; font-weight: 700; }
+    .chat-topbar p  { font-size: 11.5px; color: var(--sub); }
+    .chat-msgs { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; background: var(--bg); }
+    .msg { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.bot  { align-self: flex-start; align-items: flex-start; }
+    .msg-bubble {
+      padding: 10px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.6;
+      word-break: break-word;
+    }
+    .msg.user .msg-bubble { background: var(--ink); color: #fff; border-radius: 12px 12px 3px 12px; }
+    .msg.bot  .msg-bubble { background: var(--bg2); color: var(--ink); border: 1.5px solid var(--border); border-radius: 12px 12px 12px 3px; }
+    .msg-meta { font-size: 10.5px; color: var(--sub); }
+    .msg-feedback { display: flex; gap: 5px; margin-top: 4px; }
+    .fb-btn {
+      background: none; border: 1.5px solid var(--border); border-radius: 7px;
+      padding: 3px 9px; font-size: 13px; cursor: pointer; transition: all 0.15s;
+      color: var(--muted);
+    }
+    .fb-btn:hover   { background: var(--bg2); color: var(--ink); }
+    .fb-btn.active  { background: var(--bg3); border-color: var(--border2); color: var(--ink); }
+    .fb-btn.up      { color: var(--green); }
+    .fb-btn.down    { color: var(--red); }
+
+    /* Typing indicator */
+    .typing-bubble {
+      align-self: flex-start;
+      padding: 10px 16px; background: var(--bg2); border: 1.5px solid var(--border);
+      border-radius: 12px 12px 12px 3px;
+    }
+    .dots { display: flex; gap: 4px; align-items: center; }
+    .dots span {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--sub);
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+    .dots span:nth-child(1) { animation-delay: 0s; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);} }
+
+    /* File preview chip */
+    .file-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 500; color: var(--muted);
+      background: var(--bg2); border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 4px 12px; margin-bottom: 8px;
+    }
+    .file-chip button { background: none; border: none; cursor: pointer; color: var(--sub); font-size: 14px; line-height: 1; padding: 0 0 0 4px; }
+
+    /* Chat input */
+    .chat-input-wrap {
+      border-top: 1.5px solid var(--border); padding: 12px 14px;
+      background: var(--bg); display: flex; flex-direction: column; gap: 8px;
+    }
+    .file-preview-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chat-row { display: flex; gap: 8px; align-items: flex-end; }
+    .chat-input {
+      flex: 1; font-family: 'Inter', sans-serif; font-size: 13.5px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 10px 13px; outline: none; resize: none;
+      line-height: 1.5; max-height: 120px; background: var(--bg);
+      transition: border-color 0.18s;
+    }
+    .chat-input:focus { border-color: var(--ink); }
+    .chat-btns { display: flex; gap: 6px; }
+    .btn-attach {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: var(--bg2); border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.15s; color: var(--muted);
+    }
+    .btn-attach:hover { background: var(--bg3); color: var(--ink); }
+    .btn-send {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: var(--ink); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-send:hover   { opacity: 0.8; }
+    .btn-send:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-send svg { color: #fff; }
+
+    /* ── TOAST ─────────────────────────────────────────────────────────────── */
+    .toast-stack { position: fixed; bottom: 22px; right: 22px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast {
+      display: flex; align-items: center; gap: 9px;
+      padding: 11px 16px; border-radius: 10px; min-width: 200px;
+      font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 500;
+      pointer-events: all; box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      animation: tIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .toast.ok  { background: var(--green-l); color: #15803d; border: 1px solid #bbf7d0; }
+    .toast.err { background: var(--red-l);   color: #991b1b; border: 1px solid #fecaca; }
+    @keyframes tIn  { from{opacity:0;transform:translateY(8px) scale(0.95);}to{opacity:1;transform:none;} }
+    @keyframes tOut { to{opacity:0;transform:translateY(-5px) scale(0.96);} }
+    @keyframes spin { to{transform:rotate(360deg);} }
+    .spin { display: inline-block; animation: spin 0.7s linear infinite; }
+
+    /* ── RESPONSIVE ────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .tab-pane { padding: 16px; }
+      .c2, .prow { grid-template-columns: 1fr; }
+      .apis-sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </div>
+    <h1>Admin Login</h1>
+    <p>Sign in to access the ChatForge admin panel</p>
+    <div class="lf">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@chatforge.in" autocomplete="email"/>
+    </div>
+    <div class="lf">
+      <label>Password</label>
+      <input type="password" id="loginPwd" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn-black" id="loginBtn" onclick="doLogin()">Login</button>
+  </div>
+</div>
+
+<!-- Admin App -->
+<div id="adminApp" style="display:none">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      </div>
+      <span class="tb-name">ChatForge</span>
+      <div class="tb-sep"></div>
+      <span class="tb-page" id="tbPage">Admin Panel</span>
+    </div>
+    <div class="tb-right">
+      <div class="s-pill">
+        <div class="s-dot" id="sDot"></div>
+        <span id="sLabel">Connecting…</span>
+      </div>
+      <a href="/" class="btn-ghost">← Back to site</a>
+      <button class="btn-ghost" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <span class="nav-section">Menu</span>
+
+      <button class="nav-item active" data-tab="apis" onclick="switchTab('apis')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        API Builder
+      </button>
+
+      <button class="nav-item" data-tab="logs" onclick="switchTab('logs')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat Logs
+      </button>
+
+      <button class="nav-item" data-tab="prompt" onclick="switchTab('prompt')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        System Prompt
+      </button>
+
+      <button class="nav-item" data-tab="feedback" onclick="switchTab('feedback')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        Feedback
+      </button>
+
+      <button class="nav-item" data-tab="testchat" onclick="switchTab('testchat')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h4"/></svg>
+        Test Chat
+      </button>
+
+      <div class="nav-spacer"></div>
+      <div class="nav-user">
+        <strong>sandyrnjs@gmail.com</strong>
+        Admin
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ═══ TAB: API BUILDER ══════════════════════════════════════════════ -->
+      <div id="tab-apis" class="tab-pane active">
+        <div class="apis-layout" style="height:calc(100vh - 58px)">
+          <!-- API List Sidebar -->
+          <div class="apis-sidebar">
+            <div class="apis-sb-head">
+              <div class="apis-sb-top">
+                <span class="sb-label">Registered APIs</span>
+                <span class="cnt" id="cntBadge">0</span>
+              </div>
+              <button class="btn-new" onclick="openNew()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add New API
+              </button>
+            </div>
+            <div class="sb-search">
+              <div class="srch-wrap">
+                <span class="srch-ico">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </span>
+                <input type="text" class="srch-input" id="srchIn" placeholder="Search APIs…" oninput="filterList(this.value)"/>
+              </div>
+            </div>
+            <div class="api-list" id="apiList">
+              <div class="sb-empty"><p>No APIs yet.<br>Click <strong>Add New API</strong>.</p></div>
+            </div>
+          </div>
+
+          <!-- API Form / Welcome -->
+          <div class="apis-main" id="mainPanel">
+            <div class="welcome">
+              <div class="w-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round">
+                  <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                </svg>
+              </div>
+              <h2>Dynamic API Builder</h2>
+              <p>Register any REST endpoint and the chatbot starts using it as a tool instantly — no code, no restart needed.</p>
+              <div class="w-steps">
+                <div class="w-step"><div class="sn">1</div><div class="st"><strong>Add an API</strong> — base URL, path, method and a description the AI understands.</div></div>
+                <div class="w-step"><div class="sn">2</div><div class="st"><strong>Configure auth &amp; params</strong> — static headers, tokens, query or body parameters.</div></div>
+                <div class="w-step"><div class="sn">3</div><div class="st"><strong>Test &amp; save</strong> — run a live call to verify, then the chatbot picks it up immediately.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: CHAT LOGS ════════════════════════════════════════════════ -->
+      <div id="tab-logs" class="tab-pane">
+        <div class="pg-hd">
+          <h1>Chat Logs</h1>
+          <p>Every conversation users have had with the AI — newest first</p>
+        </div>
+        <div class="toolbar">
+          <input type="text" id="logsSearch" placeholder="Search messages…" oninput="filterLogs()" style="max-width:240px"/>
+          <select id="logsFilter" onchange="filterLogs()" style="max-width:130px">
+            <option value="">All modules</option>
+            <option>all</option><option>auth</option><option>users</option><option>friends</option>
+          </select>
+          <button class="btn-outline" onclick="loadLogs()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Refresh
+          </button>
+          <button class="btn-del" onclick="deleteAllLogs()" style="margin-left:auto">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            Delete All
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table id="logsTable">
+            <thead>
+              <tr>
+                <th style="width:120px">Time</th>
+                <th style="width:70px">Module</th>
+                <th style="width:75px">Provider</th>
+                <th>User Message</th>
+                <th>AI Reply</th>
+                <th style="width:46px"></th>
+              </tr>
+            </thead>
+            <tbody id="logsTbody">
+              <tr><td colspan="6" class="empty-state">Loading logs…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: SYSTEM PROMPT ════════════════════════════════════════════ -->
+      <div id="tab-prompt" class="tab-pane">
+        <div class="prompt-area">
+          <div class="pg-hd">
+            <h1>System Prompt Editor</h1>
+            <p>Edit the AI's instructions live — no code changes, no restart needed</p>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+              <div class="card-hd-t">
+                <h3>Active System Prompt</h3>
+                <p>This is what the AI reads at the start of every conversation</p>
+              </div>
+              <span class="default-badge" id="promptBadge" style="margin-left:auto;display:none">
+                ✓ Using default
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="f">
+                <textarea class="prompt-box" id="promptEditor" rows="18" placeholder="Loading…"></textarea>
+                <p class="prompt-note">Changes take effect within 60 seconds (cache TTL). Leave blank to reset to the default.</p>
+              </div>
+            </div>
+            <div class="action-bar">
+              <button class="btn-save" onclick="savePrompt()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save Changes
+              </button>
+              <button class="btn-outline" onclick="resetPrompt()">Reset to Default</button>
+              <span id="promptStatus" style="font-size:12px;color:var(--muted);margin-left:4px"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+              <div class="card-hd-t">
+                <h3>How the System Prompt Works</h3>
+                <p>Understanding sections and hard rules</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div style="display:grid;gap:10px">
+                <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:9px;padding:12px 14px">
+                  <div style="font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:5px">SCOPE section</div>
+                  <div style="font-size:13px;color:var(--ink);line-height:1.6">Defines what the AI <strong>is allowed to help with</strong>. The AI will only act on topics listed here.</div>
+                </div>
+                <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:9px;padding:12px 14px">
+                  <div style="font-size:10.5px;font-weight:700;color:var(--red);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:5px">OUT OF SCOPE — hard rule</div>
+                  <div style="font-size:13px;color:var(--ink);line-height:1.6">Forces the AI to <strong>refuse any question outside the scope</strong>. This is why Test Chat rejects questions about plans, weather, etc. To allow broader topics, remove or soften this section.</div>
+                </div>
+                <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:9px;padding:12px 14px">
+                  <div style="font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:5px">AUTH RULES &amp; CONFIRMATION</div>
+                  <div style="font-size:13px;color:var(--ink);line-height:1.6">Guards login-protected APIs and <strong>requires user confirmation</strong> before any data-changing action (update, delete, signup).</div>
+                </div>
+              </div>
+              <p style="margin-top:12px;font-size:12px;color:var(--sub)">Edit the prompt above and click <strong>Save Changes</strong>. New behavior takes effect within 60 seconds — no deployment needed.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: FEEDBACK ═════════════════════════════════════════════════ -->
+      <div id="tab-feedback" class="tab-pane">
+        <div class="pg-hd">
+          <h1>User Feedback</h1>
+          <p>Thumbs up / thumbs down ratings users left on AI responses</p>
+        </div>
+        <div class="toolbar">
+          <select id="fbFilter" onchange="filterFeedback()" style="max-width:160px">
+            <option value="">All ratings</option>
+            <option value="thumbs_up">👍 Positive</option>
+            <option value="thumbs_down">👎 Negative</option>
+          </select>
+          <button class="btn-outline" onclick="loadFeedback()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Refresh
+          </button>
+          <span id="fbStats" style="font-size:12px;color:var(--muted);margin-left:auto"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:120px">Time</th>
+                <th style="width:90px">Rating</th>
+                <th>User Message</th>
+                <th>AI Reply</th>
+              </tr>
+            </thead>
+            <tbody id="fbTbody">
+              <tr><td colspan="4" class="empty-state">Loading feedback…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: TEST CHAT ════════════════════════════════════════════════ -->
+      <div id="tab-testchat" class="tab-pane">
+        <div class="pg-hd">
+          <h1>Test Chat</h1>
+          <p>Chat with the AI directly — test your system prompt, tools, and file uploads</p>
+        </div>
+        <div class="chat-layout">
+          <div class="chat-topbar">
+            <div>
+              <h3>NodeAPI Assistant</h3>
+              <p>Test interface · replies go to Chat Logs</p>
+            </div>
+            <button class="btn-outline" onclick="clearChat()" style="font-size:12px;padding:6px 12px">Clear</button>
+          </div>
+
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="msg bot">
+              <div class="msg-bubble">Hi! I'm the NodeAPI assistant. Ask me anything this app supports — or test my tools from the API Builder.</div>
+              <span class="msg-meta">Bot</span>
+            </div>
+          </div>
+
+          <div class="chat-input-wrap">
+            <div class="file-preview-row" id="filePreviewRow"></div>
+            <div class="chat-row">
+              <textarea class="chat-input" id="chatInput" rows="1" placeholder="Type a message…"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg();}"
+                oninput="autoResize(this)"></textarea>
+              <div class="chat-btns">
+                <label class="btn-attach" title="Attach file">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                  <input type="file" id="fileInput" style="display:none" accept=".txt,.md,.json,.csv,.pdf,.js,.ts,.html,.css,.py,image/*" onchange="handleFile(this)"/>
+                </label>
+                <button class="btn-send" id="sendBtn" onclick="sendChatMsg()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /layout -->
+</div><!-- /adminApp -->
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+// ── Auth ────────────────────────────────────────────────────────────────────
+const ADMIN_EMAIL = 'sandyrnjs@gmail.com';
+const ADMIN_PWD   = 'SandyRNJS';
+
+function checkAuth() {
+  if (localStorage.getItem('cf_admin') === '1') showAdmin();
+  else document.getElementById('loginScreen').classList.add('show');
+}
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd   = document.getElementById('loginPwd').value;
+  const err   = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  err.textContent = '';
+  if (email !== ADMIN_EMAIL || pwd !== ADMIN_PWD) {
+    err.textContent = 'Incorrect email or password.';
+    document.getElementById('loginPwd').value = '';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  localStorage.setItem('cf_admin', '1');
+  document.getElementById('loginScreen').classList.remove('show');
+  showAdmin();
+  setTimeout(() => { btn.disabled = false; btn.textContent = 'Login'; }, 800);
+}
+
+function doLogout() {
+  localStorage.removeItem('cf_admin');
+  document.getElementById('adminApp').style.display = 'none';
+  document.getElementById('loginScreen').classList.add('show');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPwd').value = '';
+}
+
+function showAdmin() {
+  document.getElementById('adminApp').style.display = 'block';
+  init();
+}
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+const TAB_TITLES = {
+  apis: 'API Builder', logs: 'Chat Logs',
+  prompt: 'System Prompt', feedback: 'Feedback', testchat: 'Test Chat'
+};
+
+function switchTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('tbPage').textContent = TAB_TITLES[tab] || tab;
+
+  if (tab === 'logs')     loadLogs();
+  if (tab === 'prompt')   loadPrompt();
+  if (tab === 'feedback') loadFeedback();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch('/registry');
+    if (r.ok) {
+      apis = await r.json();
+      document.getElementById('sDot').classList.add('live');
+      document.getElementById('sLabel').textContent = 'Connected';
+    }
+  } catch { document.getElementById('sLabel').textContent = 'Offline'; }
+  renderList();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// API BUILDER
+// ══════════════════════════════════════════════════════════════════════════════
+let apis   = [];
+let editId = null;
+let _q     = '';
+
+function renderList() {
+  const el  = document.getElementById('apiList');
+  const q   = _q.toLowerCase();
+  const vis = q ? apis.filter(a => a.name.includes(q) || (a.description||'').toLowerCase().includes(q)) : apis;
+  document.getElementById('cntBadge').textContent = apis.length;
+
+  if (!vis.length) {
+    el.innerHTML = `<div class="sb-empty"><p>${q ? `No results for "<b>${esc(q)}</b>"` : 'No APIs yet.<br>Click <strong>Add New API</strong>.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = vis.map(a => `
+    <div class="api-item ${editId===a.id?'active':''}" onclick="openEdit('${a.id}')">
+      <div class="ai-top">
+        <span class="mb m-${a.method}">${a.method}</span>
+        <span class="ai-name">${esc(a.name)}</span>
+      </div>
+      <div class="ai-desc">${esc(a.description||a.path||'')}</div>
+    </div>`).join('');
+}
+
+function filterList(v) { _q = v; renderList(); }
+function openNew()    { editId = null; buildForm(null); renderList(); }
+function openEdit(id) { editId = id;  buildForm(apis.find(a=>a.id===id)); renderList(); }
+
+function buildForm(api) {
+  const isNew = !api;
+  const a = api || { name:'', description:'', baseUrl:'', method:'GET', path:'/', headers:[], auth:{type:'none'}, params:[] };
+
+  document.getElementById('mainPanel').innerHTML = `
+  <div style="max-width:760px">
+    <div class="pg-hd">
+      <h1>${isNew ? 'Register New API' : 'Edit — ' + esc(a.name)}</h1>
+      <p>${isNew ? 'Define an endpoint the chatbot can call as a tool' : 'Update the configuration for this registered endpoint'}</p>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="card-hd-t"><h3>Basic Info</h3><p>Tool name &amp; description the AI reads to decide when to call this endpoint</p></div>
+      </div>
+      <div class="card-body">
+        <div class="fg c2">
+          <div class="f">
+            <label>Tool Name <span class="req">*</span></label>
+            <input class="mono" type="text" id="f-name" value="${esc(a.name)}" placeholder="e.g. get_products" oninput="chkName(this)"/>
+            <span class="hint">snake_case — the AI uses this name when calling the tool</span>
+          </div>
+          <div class="f">
+            <label>HTTP Method <span class="req">*</span></label>
+            <select id="f-method">${['GET','POST','PUT','PATCH','DELETE'].map(m=>`<option${a.method===m?' selected':''}>${m}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="fg" style="margin-top:13px">
+          <div class="f">
+            <label>Description <span class="req">*</span></label>
+            <input type="text" id="f-desc" value="${esc(a.description)}" placeholder="e.g. Fetches subscription plans — used when user asks about plans"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+        <div class="card-hd-t"><h3>Endpoint</h3><p>The full URL the chatbot will call</p></div>
+      </div>
+      <div class="card-body">
+        <div class="fg c2">
+          <div class="f">
+            <label>Base URL <span class="req">*</span></label>
+            <input class="mono" type="url" id="f-baseurl" value="${esc(a.baseUrl)}" placeholder="https://api.example.com" oninput="updUrl()"/>
+          </div>
+          <div class="f">
+            <label>Path</label>
+            <input class="mono" type="text" id="f-path" value="${esc(a.path||'/')}" placeholder="/v1/products/{id}" oninput="updUrl()"/>
+            <span class="hint">Use {paramName} for path variables</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div>
+        <div class="card-hd-t"><h3>Static Headers</h3><p>Fixed key-value headers sent with every request</p></div>
+      </div>
+      <div class="card-body">
+        <div class="dyn-list" id="hdrList"></div>
+        <button class="btn-add-row" onclick="addHdr()">+ Add Header</button>
+        <div style="margin-top:8px">
+          <button type="button" onclick="toggleJsonPanel('hdrJsonPanel')" style="font-size:11.5px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:2px;padding:0">Import from JSON</button>
+        </div>
+        <div id="hdrJsonPanel" style="display:none;margin-top:8px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px">
+          <div style="font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">Paste headers as JSON object</div>
+          <textarea id="hdrJson" class="mono" style="min-height:64px;resize:vertical;font-size:11.5px" placeholder='{"Content-Type": "application/json", "Authorization": "Bearer token123"}'></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="importHdrJson()" class="btn-save" style="padding:6px 14px;font-size:12px">Parse &amp; Add</button>
+            <button onclick="toggleJsonPanel('hdrJsonPanel')" class="btn-outline" style="padding:6px 12px;font-size:12px">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+        <div class="card-hd-t"><h3>Authentication</h3><p>Credentials auto-injected into every request</p></div>
+      </div>
+      <div class="card-body">
+        <div class="auth-tabs" id="authTabs">
+          ${[['none','None'],['bearer','Bearer Token'],['apikey','API Key'],['basic','Basic Auth']].map(([v,l])=>`
+            <button class="auth-tab${(a.auth?.type||'none')===v?' on':''}" onclick="setAuth('${v}')">${l}</button>`).join('')}
+        </div>
+        <div id="authFields"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+        <div class="card-hd-t"><h3>Parameters</h3><p>Inputs the AI collects from the user before calling this endpoint</p></div>
+      </div>
+      <div class="card-body">
+        <div class="dyn-list" id="paramList"></div>
+        <button class="btn-add-row" onclick="addParam()">+ Add Parameter</button>
+        <div style="margin-top:8px">
+          <button type="button" onclick="toggleJsonPanel('paramJsonPanel')" style="font-size:11.5px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:2px;padding:0">Import from JSON</button>
+        </div>
+        <div id="paramJsonPanel" style="display:none;margin-top:8px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px">
+          <div style="font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">Paste parameters as JSON array</div>
+          <textarea id="paramJson" class="mono" style="min-height:100px;resize:vertical;font-size:11.5px" placeholder='[{"name":"user_id","type":"integer","location":"query","required":true,"description":"User ID to fetch"}]'></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="importParamJson()" class="btn-save" style="padding:6px 14px;font-size:12px">Parse &amp; Add</button>
+            <button onclick="toggleJsonPanel('paramJsonPanel')" class="btn-outline" style="padding:6px 12px;font-size:12px">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <div class="card-hd-t"><h3>Live Test</h3><p>Fire a real request to verify everything is working correctly</p></div>
+      </div>
+      <div class="card-body">
+        <div class="test-panel">
+          <div class="test-top">
+            <span style="font-size:11.5px;font-weight:600;color:var(--muted)">Request URL</span>
+            <span class="test-url" id="tUrl">${esc((a.baseUrl||'')+(a.path||''))}</span>
+          </div>
+          <div class="test-body">
+            <div class="test-params" id="testInputs"><span class="t-no-params">Add parameters above to enable test inputs.</span></div>
+            <div class="t-result" id="testResult"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-save" id="btnSave" onclick="saveAPI()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save API
+      </button>
+      <button class="btn-run" onclick="runTest()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Run Test
+      </button>
+      ${!isNew ? `<button class="btn-del" onclick="delAPI('${a.id}')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        Delete
+      </button>` : ''}
+    </div>
+  </div>`;
+
+  (a.headers||[]).forEach(h => addHdr(h.key, h.value));
+  renderAuth(a.auth || {type:'none'});
+  (a.params||[]).forEach(p => addParam(p));
+  buildTestInputs();
+  updUrl();
+}
+
+function updUrl() {
+  const el = document.getElementById('tUrl'); if (!el) return;
+  const b = (document.getElementById('f-baseurl')?.value||'').replace(/\/$/,'');
+  const p = document.getElementById('f-path')?.value||'';
+  el.textContent = (b+p)||'—';
+}
+
+function setAuth(type) {
+  document.querySelectorAll('.auth-tab').forEach(b =>
+    b.classList.toggle('on', b.getAttribute('onclick')===`setAuth('${type}')`));
+  renderAuth({type});
+}
+
+function renderAuth(ex) {
+  const type = ex?.type||'none';
+  const el = document.getElementById('authFields'); if (!el) return;
+  if (type==='none')   { el.innerHTML=''; return; }
+  if (type==='bearer') { el.innerHTML=`<div class="f"><label>Bearer Token</label><input type="password" id="fa-val" value="${esc(ex?.value||'')}" placeholder="eyJhbGci…"/></div>`; }
+  else if (type==='apikey') { el.innerHTML=`<div class="fg c2"><div class="f"><label>Header Name</label><input type="text" id="fa-hdr" value="${esc(ex?.headerName||'X-Api-Key')}" placeholder="X-Api-Key"/></div><div class="f"><label>API Key</label><input type="password" id="fa-val" value="${esc(ex?.value||'')}" placeholder="sk-…"/></div></div>`; }
+  else if (type==='basic') { el.innerHTML=`<div class="fg c2"><div class="f"><label>Username</label><input type="text" id="fa-usr" value="${esc(ex?.username||'')}" placeholder="username"/></div><div class="f"><label>Password</label><input type="password" id="fa-val" value="${esc(ex?.value||'')}" placeholder="password"/></div></div>`; }
+}
+
+function getAuth() {
+  const type = [...document.querySelectorAll('.auth-tab')].find(b=>b.classList.contains('on'))
+                ?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1] || 'none';
+  if (type==='none')   return {type:'none'};
+  if (type==='bearer') return {type:'bearer', value:document.getElementById('fa-val')?.value||''};
+  if (type==='apikey') return {type:'apikey', headerName:document.getElementById('fa-hdr')?.value||'X-Api-Key', value:document.getElementById('fa-val')?.value||''};
+  if (type==='basic')  return {type:'basic', username:document.getElementById('fa-usr')?.value||'', value:document.getElementById('fa-val')?.value||''};
+  return {type:'none'};
+}
+
+function addHdr(k='', v='') {
+  const l=document.getElementById('hdrList'); if (!l) return;
+  const r=document.createElement('div'); r.className='dyn-row hrow';
+  r.innerHTML=`<div><div class="dl">Key</div><input type="text" class="hk" value="${esc(k)}" placeholder="X-API-Key"/></div><div><div class="dl">Value</div><input type="text" class="hv" value="${esc(v)}" placeholder="value"/></div><button class="btn-rm" onclick="this.closest('.dyn-row').remove()" title="Remove">×</button>`;
+  l.appendChild(r);
+}
+
+function getHdrs() {
+  return [...document.querySelectorAll('#hdrList .dyn-row')].map(r=>({key:r.querySelector('.hk').value.trim(), value:r.querySelector('.hv').value})).filter(h=>h.key);
+}
+
+function addParam(p={}) {
+  const l=document.getElementById('paramList'); if (!l) return;
+  const r=document.createElement('div'); r.className='dyn-row prow';
+  r.innerHTML=`
+    <div><div class="dl">Name <span style="color:var(--red)">*</span></div><input class="pn mono" type="text" value="${esc(p.name||'')}" placeholder="param_name" oninput="buildTestInputs()"/></div>
+    <div><div class="dl">Location</div><select class="pl">${['query','body','path','header'].map(l=>`<option${p.location===l?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div><div class="dl">Type</div><select class="pt">${['string','number','integer','boolean'].map(t=>`<option${p.type===t?' selected':''}>${t}</option>`).join('')}</select></div>
+    <div><div class="dl">Req?</div><select class="pr"><option value="true"${p.required===true||p.required==='true'?' selected':''}>Yes</option><option value="false"${!p.required||p.required==='false'?' selected':''}>No</option></select></div>
+    <div><div class="dl">Description</div><input class="pd" type="text" value="${esc(p.description||'')}" placeholder="What this param represents"/></div>
+    <button class="btn-rm" onclick="this.closest('.dyn-row').remove();buildTestInputs()" title="Remove">×</button>`;
+  l.appendChild(r); buildTestInputs();
+}
+
+function getParams() {
+  return [...document.querySelectorAll('#paramList .dyn-row')].map(r=>({
+    name:r.querySelector('.pn').value.trim(), location:r.querySelector('.pl').value,
+    type:r.querySelector('.pt').value, required:r.querySelector('.pr').value==='true',
+    description:r.querySelector('.pd').value.trim(),
+  })).filter(p=>p.name);
+}
+
+function buildTestInputs() {
+  const ps=getParams(); const el=document.getElementById('testInputs'); if (!el) return;
+  if (!ps.length) { el.innerHTML='<span class="t-no-params">Add parameters above to enable test inputs.</span>'; return; }
+  el.innerHTML=ps.map(p=>`<div class="t-row"><label>${esc(p.name)} <span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:1px 6px;color:var(--muted)">${p.location}</span></label><input type="text" class="tv" data-name="${esc(p.name)}" placeholder="${p.required?'required':'optional'}"/></div>`).join('');
+}
+
+function chkName(el) { el.classList.toggle('bad', el.value.length>0 && !/^[a-z][a-z0-9_]*$/.test(el.value)); }
+
+function collect() {
+  return {
+    id:editId||Date.now().toString(36),
+    name:document.getElementById('f-name')?.value.trim()||'',
+    description:document.getElementById('f-desc')?.value.trim()||'',
+    baseUrl:document.getElementById('f-baseurl')?.value.trim()||'',
+    method:document.getElementById('f-method')?.value||'GET',
+    path:document.getElementById('f-path')?.value.trim()||'/',
+    headers:getHdrs(), auth:getAuth(), params:getParams(),
+  };
+}
+
+async function saveAPI() {
+  const api=collect();
+  if (!api.name)                            return toast('Tool Name is required','err');
+  if (!/^[a-z][a-z0-9_]*$/.test(api.name)) return toast('Tool Name must be snake_case','err');
+  if (!api.description)                     return toast('Description is required','err');
+  if (!api.baseUrl.startsWith('http'))      return toast('Base URL must start with http:// or https://','err');
+  const btn=document.getElementById('btnSave');
+  btn.disabled=true; btn.innerHTML='<span class="spin">⟳</span> Saving…';
+  try {
+    const r=await fetch('/registry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(api)});
+    const d=await r.json();
+    if (!r.ok) { toast(d.error||'Save failed','err'); return; }
+    editId=api.id; apis=await (await fetch('/registry')).json(); renderList();
+    toast(`"${api.name}" saved`,'ok');
+  } catch { toast('Network error','err'); }
+  finally {
+    btn.disabled=false;
+    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save API';
+  }
+}
+
+async function delAPI(id) {
+  if (!confirm('Delete this API? The chatbot will no longer be able to call it.')) return;
+  try {
+    const r=await fetch(`/registry/${id}`,{method:'DELETE'});
+    if (!r.ok) return toast('Delete failed','err');
+    editId=null; apis=await (await fetch('/registry')).json(); renderList();
+    document.getElementById('mainPanel').innerHTML=`<div class="welcome"><div class="w-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg></div><h2>API Deleted</h2><p>The endpoint has been removed.</p></div>`;
+    toast('API deleted','ok');
+  } catch { toast('Network error','err'); }
+}
+
+async function runTest() {
+  const api=collect(); const input={};
+  document.querySelectorAll('.tv').forEach(e=>{ if(e.value.trim()) input[e.dataset.name]=e.value.trim(); });
+  const el=document.getElementById('testResult');
+  if (!api.baseUrl.startsWith('http')) { showRes(el,'⚠  Set a valid Base URL first','err'); return; }
+  showRes(el,'⏳  Sending request…','');
+  try {
+    const r=await fetch('/registry/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api,input})});
+    const d=await r.json();
+    showRes(el, JSON.stringify(d.result??d,null,2), r.ok?'ok':'err');
+  } catch(e) { showRes(el,'⚠  '+e.message,'err'); }
+}
+
+function showRes(el,text,cls) {
+  if (!el) return;
+  el.className='t-result show'+(cls?' '+cls:'');
+  el.textContent=text;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAT LOGS
+// ══════════════════════════════════════════════════════════════════════════════
+let _allLogs = [];
+
+async function loadLogs() {
+  const tbody = document.getElementById('logsTbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Loading…</td></tr>';
+  try {
+    const r = await fetch('/admin/logs?limit=200');
+    _allLogs = r.ok ? await r.json() : [];
+    filterLogs();
+  } catch { tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Failed to load logs.</td></tr>'; }
+}
+
+function filterLogs() {
+  const q   = (document.getElementById('logsSearch')?.value||'').toLowerCase();
+  const mod = document.getElementById('logsFilter')?.value || '';
+  const vis = _allLogs.filter(l =>
+    (!mod || l.module === mod) &&
+    (!q   || (l.userMsg||'').toLowerCase().includes(q) || (l.aiReply||'').toLowerCase().includes(q))
+  );
+  const tbody = document.getElementById('logsTbody');
+  if (!vis.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><p>No logs found${q ? ` for "${esc(q)}"` : ''}.</p></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = vis.map((l, i) => `
+    <tr style="cursor:pointer" onclick="toggleLog('ld-${i}')">
+      <td class="td-muted">${fmtTime(l.ts)}</td>
+      <td><span style="font-size:11px;font-weight:600;background:var(--bg3);padding:2px 8px;border-radius:5px;color:var(--muted)">${esc(l.module||'—')}</span></td>
+      <td class="td-muted">${esc(l.provider||'—')}</td>
+      <td class="td-clip">${esc(l.userMsg||'')}</td>
+      <td class="td-clip">${esc(l.aiReply||'')}</td>
+      <td onclick="event.stopPropagation()" style="text-align:center">
+        <button onclick="deleteLog('${esc(l.id||'')}','ld-${i}')" title="Delete this log"
+          style="background:none;border:none;cursor:pointer;color:var(--sub);font-size:15px;line-height:1;padding:2px 5px;border-radius:5px;transition:all 0.15s"
+          onmouseover="this.style.background='var(--red-l)';this.style.color='var(--red)'"
+          onmouseout="this.style.background='none';this.style.color='var(--sub)'">×</button>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="6" style="padding:0">
+        <div class="log-detail" id="ld-${i}">
+          <div class="ld-label">User</div>
+          <div class="ld-text" style="margin-bottom:12px">${esc(l.userMsg||'—')}</div>
+          <div class="ld-label">AI Reply</div>
+          <div class="ld-text">${esc(l.aiReply||'—')}</div>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function toggleLog(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show');
+}
+
+async function deleteLog(logId) {
+  if (!logId) return toast('Log ID missing', 'err');
+  try {
+    const r = await fetch(`/admin/logs/${encodeURIComponent(logId)}`, { method: 'DELETE' });
+    if (!r.ok) { toast('Delete failed', 'err'); return; }
+    _allLogs = _allLogs.filter(l => l.id !== logId);
+    filterLogs();
+    toast('Log deleted', 'ok');
+  } catch { toast('Network error', 'err'); }
+}
+
+async function deleteAllLogs() {
+  if (!_allLogs.length) return toast('No logs to delete', 'err');
+  if (!confirm(`Delete all ${_allLogs.length} logs? This cannot be undone.`)) return;
+  try {
+    const r = await fetch('/admin/logs', { method: 'DELETE' });
+    if (!r.ok) { toast('Delete failed', 'err'); return; }
+    _allLogs = [];
+    filterLogs();
+    toast('All logs deleted', 'ok');
+  } catch { toast('Network error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SYSTEM PROMPT
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadPrompt() {
+  document.getElementById('promptEditor').value = 'Loading…';
+  try {
+    const r = await fetch('/admin/prompt');
+    const d = await r.json();
+    document.getElementById('promptEditor').value = d.prompt || '';
+    const badge = document.getElementById('promptBadge');
+    badge.style.display = d.isDefault ? 'inline-flex' : 'none';
+    document.getElementById('promptStatus').textContent = d.isDefault ? '' : 'Custom prompt active';
+  } catch { document.getElementById('promptEditor').value = 'Failed to load prompt.'; }
+}
+
+async function savePrompt() {
+  const prompt = document.getElementById('promptEditor').value.trim();
+  if (!prompt) return toast('Prompt cannot be empty','err');
+  const status = document.getElementById('promptStatus');
+  status.textContent = 'Saving…';
+  try {
+    const r = await fetch('/admin/prompt', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    if (r.ok) {
+      toast('System prompt saved — takes effect within 60s','ok');
+      document.getElementById('promptBadge').style.display = 'none';
+      status.textContent = 'Custom prompt active';
+    } else {
+      const d = await r.json(); toast(d.error||'Save failed','err'); status.textContent = '';
+    }
+  } catch { toast('Network error','err'); status.textContent = ''; }
+}
+
+async function resetPrompt() {
+  if (!confirm('Reset to the default system prompt from config.js?')) return;
+  try {
+    const r = await fetch('/admin/prompt/reset', {method:'POST'});
+    const d = await r.json();
+    document.getElementById('promptEditor').value = d.prompt || '';
+    document.getElementById('promptBadge').style.display = 'inline-flex';
+    document.getElementById('promptStatus').textContent = '';
+    toast('Reset to default prompt','ok');
+  } catch { toast('Network error','err'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FEEDBACK
+// ══════════════════════════════════════════════════════════════════════════════
+let _allFeedback = [];
+
+async function loadFeedback() {
+  const tbody = document.getElementById('fbTbody');
+  tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading…</td></tr>';
+  try {
+    const r = await fetch('/admin/feedback?limit=200');
+    _allFeedback = r.ok ? await r.json() : [];
+    filterFeedback();
+  } catch { tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Failed to load feedback.</td></tr>'; }
+}
+
+function filterFeedback() {
+  const filter = document.getElementById('fbFilter')?.value || '';
+  const vis    = filter ? _allFeedback.filter(f => f.type === filter) : _allFeedback;
+  const tbody  = document.getElementById('fbTbody');
+
+  const ups   = _allFeedback.filter(f => f.type === 'thumbs_up').length;
+  const downs = _allFeedback.filter(f => f.type === 'thumbs_down').length;
+  const stats = document.getElementById('fbStats');
+  if (stats && _allFeedback.length) stats.textContent = `👍 ${ups}   👎 ${downs}   Total: ${_allFeedback.length}`;
+
+  if (!vis.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-state"><p>No feedback yet. Use the Test Chat tab to leave ratings.</p></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = vis.map(f => `
+    <tr>
+      <td class="td-muted">${fmtTime(f.ts)}</td>
+      <td>${f.type === 'thumbs_up' ? '<span class="badge-up">👍 Good</span>' : '<span class="badge-down">👎 Bad</span>'}</td>
+      <td class="td-clip">${esc(f.userMsg||'—')}</td>
+      <td class="td-clip">${esc(f.aiReply||'—')}</td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEST CHAT
+// ══════════════════════════════════════════════════════════════════════════════
+let chatHistory    = [];
+let pendingFile    = null;
+let currentLogId   = null;
+let isSending      = false;
+let msgMap         = {};
+
+function clearChat() {
+  chatHistory = [];
+  pendingFile = null;
+  msgMap = {};
+  document.getElementById('filePreviewRow').innerHTML = '';
+  document.getElementById('chatMsgs').innerHTML = `
+    <div class="msg bot">
+      <div class="msg-bubble">Hi! I'm the NodeAPI assistant. Ask me anything or test my tools.</div>
+      <span class="msg-meta">Bot</span>
+    </div>`;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleFile(input) {
+  const file = input.files[0]; if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('File too large (max 5MB)','err'); return; }
+  const row = document.getElementById('filePreviewRow');
+  const chip = document.createElement('div');
+  chip.className = 'file-chip';
+  chip.innerHTML = `📎 ${esc(file.name)} <button onclick="clearFile()" title="Remove">×</button>`;
+  row.innerHTML = '';
+  row.appendChild(chip);
+
+  if (file.type.startsWith('text/') || /\.(json|csv|md|js|ts|py|html|css)$/i.test(file.name)) {
+    const reader = new FileReader();
+    reader.onload = e => { pendingFile = { name: file.name, content: e.target.result.slice(0, 3000) }; };
+    reader.readAsText(file);
+  } else if (file.type.startsWith('image/')) {
+    pendingFile = { name: file.name, content: null, isImage: true };
+  } else {
+    pendingFile = { name: file.name, content: null };
+  }
+  input.value = '';
+}
+
+function clearFile() {
+  pendingFile = null;
+  document.getElementById('filePreviewRow').innerHTML = '';
+}
+
+async function sendChatMsg() {
+  if (isSending) return;
+  const input = document.getElementById('chatInput');
+  let msg = input.value.trim();
+  if (!msg && !pendingFile) return;
+
+  if (pendingFile) {
+    if (pendingFile.isImage) {
+      msg += (msg ? '\n\n' : '') + `[Attached image: ${pendingFile.name}]`;
+    } else if (pendingFile.content) {
+      msg += (msg ? '\n\n' : '') + `[Attached file: ${pendingFile.name}]\n\`\`\`\n${pendingFile.content}\n\`\`\``;
+    }
+    clearFile();
+  }
+
+  input.value = ''; input.style.height = 'auto';
+  addUserMsg(msg);
+  isSending = true;
+  document.getElementById('sendBtn').disabled = true;
+  showTyping();
+
+  try {
+    const r = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: chatHistory, module: 'all' }),
+    });
+    const d = await r.json();
+    hideTyping();
+    if (r.ok) {
+      chatHistory = d.history || chatHistory;
+      currentLogId = d.logId || null;
+      addBotMsg(d.reply || '…', msg, currentLogId);
+    } else {
+      addBotMsg(d.error || 'Something went wrong.', msg, null);
+    }
+  } catch (e) {
+    hideTyping();
+    addBotMsg('Network error — could not reach the server.', msg, null);
+  } finally {
+    isSending = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+function addUserMsg(text) {
+  const msgs = document.getElementById('chatMsgs');
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div><span class="msg-meta">${fmtTime(Date.now())}</span>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addBotMsg(text, userMsg, logId) {
+  const msgs = document.getElementById('chatMsgs');
+  const id   = 'fb-' + Date.now().toString(36);
+  msgMap[id]  = { userMsg: userMsg || '', aiReply: text || '', logId: logId || '' };
+  const el   = document.createElement('div');
+  el.className = 'msg bot';
+  el.innerHTML = `
+    <div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div>
+    <span class="msg-meta">${fmtTime(Date.now())}</span>
+    <div class="msg-feedback" id="${id}">
+      <button class="fb-btn" data-type="thumbs_up" onclick="sendFeedback('thumbs_up','${id}')">👍</button>
+      <button class="fb-btn" data-type="thumbs_down" onclick="sendFeedback('thumbs_down','${id}')">👎</button>
+    </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chatMsgs');
+  const el   = document.createElement('div');
+  el.id      = 'typingIndicator';
+  el.className = 'typing-bubble';
+  el.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  document.getElementById('typingIndicator')?.remove();
+}
+
+async function sendFeedback(type, containerId) {
+  const { userMsg, aiReply, logId } = msgMap[containerId] || {};
+  try {
+    await fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, logId: logId || '', userMsg: userMsg || '', aiReply: aiReply || '' }),
+    });
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.querySelectorAll('.fb-btn').forEach(b => b.classList.remove('active','up','down'));
+      const btn = container.querySelector(`[data-type="${type}"]`);
+      if (btn) { btn.classList.add('active', type === 'thumbs_up' ? 'up' : 'down'); }
+    }
+    toast(type === 'thumbs_up' ? '👍 Thanks for the feedback!' : '👎 Noted — we\'ll improve','ok');
+  } catch { toast('Could not save feedback','err'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════════════════════════
+function fmtTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function toast(msg, type) {
+  const wrap = document.getElementById('toastStack');
+  const t    = document.createElement('div'); t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type==='ok'?'✓':'✕'}</span>${esc(msg)}`;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.animation='tOut 0.25s ease forwards'; setTimeout(()=>t.remove(),250); }, 3000);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── JSON Import helpers ──────────────────────────────────────────────────────
+function toggleJsonPanel(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function importHdrJson() {
+  const raw = (document.getElementById('hdrJson')?.value || '').trim();
+  if (!raw) return toast('Paste a JSON object first', 'err');
+  let obj;
+  try { obj = JSON.parse(raw); } catch { return toast('Invalid JSON — check the syntax', 'err'); }
+  if (typeof obj !== 'object' || Array.isArray(obj) || obj === null)
+    return toast('Headers JSON must be an object: {"Key": "Value"}', 'err');
+  let count = 0;
+  Object.entries(obj).forEach(([k, v]) => { if (k) { addHdr(k, String(v)); count++; } });
+  document.getElementById('hdrJson').value = '';
+  document.getElementById('hdrJsonPanel').style.display = 'none';
+  count ? toast(`Added ${count} header${count !== 1 ? 's' : ''}`, 'ok') : toast('No valid entries found', 'err');
+}
+
+function importParamJson() {
+  const raw = (document.getElementById('paramJson')?.value || '').trim();
+  if (!raw) return toast('Paste a JSON array first', 'err');
+  let arr;
+  try { arr = JSON.parse(raw); } catch { return toast('Invalid JSON — check the syntax', 'err'); }
+  if (!Array.isArray(arr)) return toast('Params JSON must be an array: [{...}, ...]', 'err');
+  let count = 0;
+  arr.forEach(p => { if (p && p.name) { addParam(p); count++; } });
+  document.getElementById('paramJson').value = '';
+  document.getElementById('paramJsonPanel').style.display = 'none';
+  count ? toast(`Added ${count} param${count !== 1 ? 's' : ''}`, 'ok') : toast('No valid params — each item needs a "name" field', 'err');
+}
+
+// Boot
+checkAuth();
+</script>
+</body>
+</html>

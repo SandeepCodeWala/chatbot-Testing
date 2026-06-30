@@ -8,7 +8,7 @@ const GROQ_MODELS = [
   'llama3-70b-8192',
 ];
 
-async function callGroq(apiKey, messages, groqTools) {
+async function callGroq(apiKey, messages, groqTools, systemPrompt) {
   const groq = new Groq({ apiKey });
   let lastErr;
 
@@ -16,7 +16,7 @@ async function callGroq(apiKey, messages, groqTools) {
     try {
       const response = await groq.chat.completions.create({
         model,
-        messages:    [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
+        messages:    [{ role: 'system', content: systemPrompt }, ...messages],
         tools:       groqTools,
         tool_choice: 'auto',
         max_tokens:  1024,
@@ -36,18 +36,19 @@ async function callGroq(apiKey, messages, groqTools) {
   throw lastErr || new Error('All Groq models exhausted');
 }
 
-async function runGroqAgent(messages, headers = {}, tools, executeTool) {
+async function runGroqAgent(messages, headers = {}, tools, executeTool, opts = {}) {
   const groqTools = tools.map(t => ({
     type: 'function',
     function: { name: t.name, description: t.description, parameters: t.parameters },
   }));
 
+  const activePrompt = opts.systemPrompt || SYSTEM_PROMPT;
   let currentMessages = [...messages];
   let totalUsage = { input: 0, output: 0, total: 0 };
 
   while (true) {
     const response = await callWithRetry('groq', apiKey =>
-      callGroq(apiKey, currentMessages, groqTools)
+      callGroq(apiKey, currentMessages, groqTools, activePrompt)
     );
 
     const assistantMsg = response.choices[0].message;

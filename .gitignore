@@ -3,6 +3,9 @@ node_modules/
 
 # env files
 .env
+
+# API registry — contains auth tokens, do not commit
+apps/*/api-registry.json
 .env.local
 .env.development
 .env.production
