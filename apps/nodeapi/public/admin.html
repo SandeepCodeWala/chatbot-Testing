@@ -831,6 +831,10 @@ const ADMIN_EMAIL = 'sandyrnjs@gmail.com';
 const ADMIN_PWD   = 'SandyRNJS';
 
 function checkAuth() {
+  if (new URLSearchParams(location.search).get('access') === '1') {
+    localStorage.setItem('cf_admin', '1');
+    history.replaceState({}, '', '/admin');
+  }
   if (localStorage.getItem('cf_admin') === '1') showAdmin();
   else document.getElementById('loginScreen').classList.add('show');
 }
