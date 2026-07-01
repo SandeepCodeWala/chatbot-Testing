@@ -11,7 +11,7 @@ async function executeAuthTool(toolName, args) {
           name:     args.name,
           email:    args.email,
           password: args.password,
-          age:      args.age,
+          age:      parseInt(args.age, 10) || args.age,
         });
         return { success: true, message: res.data?.message || 'Account created successfully. You can now login.' };
       } catch (err) {

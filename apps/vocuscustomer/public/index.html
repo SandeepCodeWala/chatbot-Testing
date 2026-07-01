@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vocus Customer Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary:  #0f172a;
+      --accent:   #2563eb;
+      --accent2:  #1d4ed8;
+      --light:    #eff6ff;
+      --border:   #e2e8f0;
+      --muted:    #64748b;
+      --text:     #0f172a;
+      --sub:      #94a3b8;
+      --white:    #ffffff;
+      --radius:   12px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, #2563eb12 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .shell {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 820px; height: 95vh;
+      background: var(--white);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 40px rgba(37,99,235,0.10), 0 2px 8px rgba(37,99,235,0.06);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      flex-shrink: 0;
+    }
+    .logo-wrap {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: 15px;
+    }
+    .header-info { flex: 1; }
+    .header-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .header-sub   { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+    .status-dot.offline { background: #ef4444; }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-clear-session {
+      font-size: 11px; color: var(--muted); background: none; border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-clear-session:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+
+    /* ── Provider / Module toggles ── */
+    .toggles {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 20px;
+      background: var(--light);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .tg-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-right: 2px; }
+    .tg-btn {
+      font-size: 11.5px; font-weight: 500; padding: 4px 10px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--white); color: var(--muted);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .tg-btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .tg-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+
+    /* ── Messages ── */
+    .messages {
+      flex: 1; overflow-y: auto; padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      scroll-behavior: smooth;
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg { display: flex; gap: 10px; max-width: 85%; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg.bot  { align-self: flex-start; }
+
+    .avatar {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+    .msg.user .avatar { background: var(--accent); color: #fff; }
+    .msg.bot  .avatar { background: var(--primary); color: #fff; }
+
+    .bubble {
+      padding: 10px 14px; border-radius: 12px;
+      font-size: 14px; line-height: 1.6; white-space: pre-wrap;
+    }
+    .msg.user .bubble { background: var(--accent); color: #fff; border-top-right-radius: 4px; }
+    .msg.bot  .bubble {
+      background: var(--light); color: var(--text);
+      border: 1px solid var(--border); border-top-left-radius: 4px;
+    }
+
+    .msg-meta {
+      display: flex; align-items: center; gap: 6px; margin-top: 4px;
+    }
+    .msg.user .msg-meta { justify-content: flex-end; }
+    .provider-tag {
+      font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px;
+      background: var(--border); color: var(--muted); text-transform: uppercase;
+    }
+    .thumb-btn {
+      background: none; border: 1px solid transparent; border-radius: 5px;
+      cursor: pointer; font-size: 13px; padding: 2px 5px; transition: all 0.15s;
+      color: var(--sub);
+    }
+    .thumb-btn:hover { border-color: var(--border); background: var(--white); }
+    .thumb-btn.voted { opacity: 0.5; pointer-events: none; }
+
+    /* Typing indicator */
+    .typing { display: flex; gap: 5px; align-items: center; padding: 12px 14px; }
+    .typing span {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+      30%         { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ── Quick questions ── */
+    .quick-wrap {
+      padding: 0 20px 12px;
+      display: flex; gap: 8px; flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .quick-btn {
+      font-size: 12px; padding: 6px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--white); color: var(--muted);
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--light); }
+
+    /* ── Input bar ── */
+    .input-bar {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 8px; align-items: flex-end;
+      background: var(--white);
+      flex-shrink: 0;
+    }
+    .input-bar textarea {
+      flex: 1; resize: none; outline: none;
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 14px; font-size: 14px; font-family: inherit; color: var(--text);
+      min-height: 42px; max-height: 120px; line-height: 1.5;
+      transition: border-color 0.15s;
+    }
+    .input-bar textarea:focus { border-color: var(--accent); }
+    .input-bar textarea::placeholder { color: var(--sub); }
+    #sendBtn {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: var(--accent); color: #fff; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    #sendBtn:hover:not(:disabled) { background: var(--accent2); transform: scale(1.04); }
+    #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(10px);
+      background: var(--primary); color: #fff; padding: 8px 18px;
+      border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none;
+      transition: all 0.25s; z-index: 999; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err  { background: #dc2626; }
+    .toast.ok   { background: #16a34a; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-wrap">V</div>
+    <div class="header-info">
+      <div class="header-title">Vocus Customer Assistant</div>
+      <div class="header-sub">Ask me about your account, plans, and services</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-clear-session" onclick="clearSession()" title="Clear your session and start fresh">Clear Session</button>
+      <div class="status-dot" id="sDot"></div>
+    </div>
+  </div>
+
+  <!-- Provider + Module toggles -->
+  <div class="toggles">
+    <span class="tg-label">AI:</span>
+    <button class="tg-btn" data-p="groq"   onclick="setProvider('groq')">Groq</button>
+    <button class="tg-btn" data-p="claude" onclick="setProvider('claude')">Claude</button>
+    <button class="tg-btn" data-p="openai" onclick="setProvider('openai')">OpenAI</button>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages" id="messages"></div>
+
+  <!-- Quick questions -->
+  <div class="quick-wrap" id="quickWrap"></div>
+
+  <!-- Input -->
+  <div class="input-bar">
+    <textarea id="input" placeholder="Ask about your account, plans, or services…" rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+    <button id="sendBtn" onclick="sendMsg()" title="Send">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Admin FAB -->
+<button onclick="openAdminLogin()" title="Admin Panel" style="position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:50%;background:#0f172a;color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;z-index:9999;">⚙</button>
+
+<!-- Admin Login Modal -->
+<div id="adminOverlay" onclick="closeAdminLogin(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:32px 28px;width:340px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,0.18);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <span style="font-weight:700;font-size:17px;">Admin Login</span>
+      <button onclick="closeAdminLogin()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;line-height:1;">×</button>
+    </div>
+    <input id="amEmail" type="email" placeholder="Email" autocomplete="email"
+      style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;"/>
+    <input id="amPwd" type="password" placeholder="Password"
+      style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;margin-bottom:6px;outline:none;font-family:inherit;"/>
+    <div id="amErr" style="color:#dc2626;font-size:13px;min-height:18px;margin-bottom:10px;"></div>
+    <button onclick="doAdminLogin()" style="width:100%;padding:11px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">Sign In</button>
+  </div>
+</div>
+<style>#adminOverlay.open { display:flex !important; }</style>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Session management ────────────────────────────────────────────────────────
+const SESSION_KEY = 'vc_session';
+let sessionId = localStorage.getItem(SESSION_KEY);
+if (!sessionId) {
+  sessionId = 'vc_' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  localStorage.setItem(SESSION_KEY, sessionId);
+}
+
+function clearSession() {
+  if (!confirm('Clear your session? You will need to log in again.')) return;
+  localStorage.removeItem(SESSION_KEY);
+  sessionId = 'vc_' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  localStorage.setItem(SESSION_KEY, sessionId);
+  chatHistory = [];
+  msgMap = {};
+  document.getElementById('messages').innerHTML = '';
+  appendMessage('bot', 'Session cleared. How can I help you?');
+  showToast('Session cleared', 'ok');
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let chatHistory   = [];
+let activeProvider = 'groq';
+let isLoading     = false;
+let msgMap        = {}; // { msgId: { userMsg, aiReply, logId } }
+
+const QUICK = [
+  'I want to log in',
+  'Show my plans',
+  'View my account',
+  'Help me with my service',
+];
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch('/provider');
+    if (r.ok) {
+      const d = await r.json();
+      activeProvider = d.provider || 'groq';
+    }
+    document.getElementById('sDot').classList.remove('offline');
+  } catch {
+    document.getElementById('sDot').classList.add('offline');
+  }
+  updateProviderBtns();
+  renderQuick();
+  appendMessage('bot', 'Hi! I\'m your Vocus customer assistant. I can help you with your account, plans, and services.\n\nTo get started, just ask me anything or try one of the quick options below.');
+}
+
+function setProvider(p) {
+  activeProvider = p;
+  updateProviderBtns();
+}
+
+function updateProviderBtns() {
+  document.querySelectorAll('.tg-btn[data-p]').forEach(b =>
+    b.classList.toggle('on', b.dataset.p === activeProvider));
+}
+
+function renderQuick() {
+  const wrap = document.getElementById('quickWrap');
+  wrap.innerHTML = QUICK.map(q =>
+    `<button class="quick-btn" onclick="sendQuick(this)">${q}</button>`
+  ).join('');
+}
+
+function sendQuick(btn) {
+  document.getElementById('input').value = btn.textContent;
+  sendMsg();
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+function appendMessage(role, text, provider, logId) {
+  const wrap = document.getElementById('messages');
+  const id   = 'msg_' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+  if (role === 'bot' && logId) {
+    msgMap[id] = { aiReply: text, logId };
+  }
+
+  const div = document.createElement('div');
+  div.className = `msg ${role === 'user' ? 'user' : 'bot'}`;
+  div.id = id;
+
+  const avatar = role === 'user' ? 'U' : 'V';
+  const bubble = `<div class="bubble">${esc(text)}</div>`;
+
+  let meta = '';
+  if (role === 'bot') {
+    const tag = provider ? `<span class="provider-tag">${provider}</span>` : '';
+    const thumbs = logId
+      ? `<button class="thumb-btn" data-type="thumbs_up"   onclick="sendFeedback('thumbs_up','${id}')">👍</button>
+         <button class="thumb-btn" data-type="thumbs_down" onclick="sendFeedback('thumbs_down','${id}')">👎</button>`
+      : '';
+    meta = `<div class="msg-meta">${tag}${thumbs}</div>`;
+  }
+
+  div.innerHTML = `<div class="avatar">${avatar}</div><div>${bubble}${meta}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+function showTyping() {
+  const wrap = document.getElementById('messages');
+  const div  = document.createElement('div');
+  div.className = 'msg bot'; div.id = 'typing';
+  div.innerHTML = '<div class="avatar">V</div><div class="bubble typing"><span></span><span></span><span></span></div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function removeTyping() {
+  document.getElementById('typing')?.remove();
+}
+
+function showToast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show' + (type ? ' '+type : '');
+  setTimeout(() => el.className = 'toast', 2800);
+}
+
+// ── Feedback ─────────────────────────────────────────────────────────────────
+async function sendFeedback(type, containerId) {
+  const data = msgMap[containerId]; if (!data) return;
+  try {
+    const r = await fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, aiReply: data.aiReply, logId: data.logId }),
+    });
+    if (r.ok) {
+      const container = document.getElementById(containerId);
+      container?.querySelectorAll('.thumb-btn').forEach(b => b.classList.add('voted'));
+      showToast(type === 'thumbs_up' ? 'Thanks for the feedback!' : 'Thanks, we\'ll improve!', 'ok');
+    }
+  } catch { showToast('Could not send feedback', 'err'); }
+}
+
+// ── Send ──────────────────────────────────────────────────────────────────────
+async function sendMsg() {
+  const input = document.getElementById('input');
+  const text  = input.value.trim();
+  if (!text || isLoading) return;
+
+  input.value = ''; input.style.height = 'auto';
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('quickWrap').innerHTML = '';
+
+  appendMessage('user', text);
+  showTyping();
+
+  try {
+    const r = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: chatHistory,
+        provider: activeProvider,
+        sessionId,
+      }),
+    });
+    const data = await r.json();
+    removeTyping();
+    if (!r.ok) {
+      showToast(data.error || 'Request failed', 'err');
+      appendMessage('bot', data.error || 'Something went wrong. Please try again.');
+    } else {
+      // Update sessionId if server echoes a different one (shouldn't happen but safe)
+      if (data.sessionId && data.sessionId !== sessionId) {
+        sessionId = data.sessionId;
+        localStorage.setItem(SESSION_KEY, sessionId);
+      }
+      appendMessage('bot', data.reply, data.provider, data.logId);
+      chatHistory = data.history;
+    }
+  } catch {
+    removeTyping();
+    showToast('Cannot reach server', 'err');
+    appendMessage('bot', 'Connection failed. Is the server running?');
+  } finally {
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('input').focus();
+  }
+}
+
+// ── Admin FAB ─────────────────────────────────────────────────────────────────
+const ADMIN_EMAIL_A = 'sandyrnjs@gmail.com';
+const ADMIN_PWD_A   = 'SandyRNJS';
+
+function openAdminLogin() {
+  if (localStorage.getItem('cf_admin') === '1') { window.location.href = '/admin'; return; }
+  document.getElementById('adminOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('amEmail').focus(), 50);
+}
+function closeAdminLogin(e) {
+  if (e && e.target !== document.getElementById('adminOverlay')) return;
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+function doAdminLogin() {
+  const email = document.getElementById('amEmail').value.trim();
+  const pwd   = document.getElementById('amPwd').value;
+  const err   = document.getElementById('amErr');
+  err.textContent = '';
+  if (!email || !pwd) { err.textContent = 'Please fill in all fields.'; return; }
+  if (email !== ADMIN_EMAIL_A || pwd !== ADMIN_PWD_A) {
+    err.textContent = 'Incorrect email or password.';
+    document.getElementById('amPwd').value = ''; return;
+  }
+  localStorage.setItem('cf_admin', '1');
+  window.location.href = '/admin';
+}
+document.getElementById('amPwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doAdminLogin();
+});
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "mr060usn",
+    "name": "get_plans",
+    "description": "get or fetch the plans",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "GET",
+    "path": "/GetPlans",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "EBhFOEiiIoWfgjJZ0aoidQleuxRed3LNs0Qpz7HiRc0="
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [],
+    "createdAt": "2026-06-30T04:47:30.815Z",
+    "updatedAt": "2026-06-30T04:47:30.815Z"
+  },
+  {
+    "id": "mr08d8p7",
+    "name": "get_addon_plans",
+    "description": "this is addon api when user has selected any plan or want any plan addon fetch this api will work.",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "GET",
+    "path": "/GetAddOn",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "EBhFOEiiIoWfgjJZ0aoidQleuxRed3LNs0Qpz7HiRc0="
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [],
+    "createdAt": "2026-06-30T05:53:08.032Z",
+    "updatedAt": "2026-06-30T05:53:08.033Z"
+  }
+]

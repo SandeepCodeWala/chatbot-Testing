@@ -1,0 +1,123 @@
+[
+  {
+    "id": "mr1mjqz1",
+    "name": "generate_otp",
+    "description": "Generate OTP for user login by using user email. Login the user account by email",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "POST",
+    "path": "/GenerateOTP",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [
+      {
+        "name": "EmailORCellNumber",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "user email address"
+      }
+    ],
+    "tokenExtract": null,
+    "createdAt": "2026-07-01T05:17:52.347Z",
+    "updatedAt": "2026-07-01T05:17:52.347Z"
+  },
+  {
+    "id": "mr1mqgy4",
+    "name": "validate_otp",
+    "description": "Validate the Otp after generating otp from the generate_otp tools when API responses true means OTP generated and now User will write OTP and this validate_otp toll will validate the OTP",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "POST",
+    "path": "/ValidateOTP",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [
+      {
+        "name": "EmailORCellNumber",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "Email that user used to generate otp"
+      },
+      {
+        "name": "Validate_OTP",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "OTP that user received on there email that will check"
+      }
+    ],
+    "tokenExtract": {
+      "field": "requestauthtoken",
+      "as": "requestauthtoken"
+    },
+    "createdAt": "2026-07-01T05:23:05.994Z",
+    "updatedAt": "2026-07-01T05:23:05.995Z"
+  },
+  {
+    "id": "mr1niia0",
+    "name": "get_user_info",
+    "description": "The GetUserInfo API is used to retrieve the authenticated user's profile information along with all mobile services, account details, plan information, application settings, and user-specific configuration required after login.",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "GET",
+    "path": "/GetUserInfo",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "{{requestauthtoken}}"
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [],
+    "tokenExtract": null,
+    "createdAt": "2026-07-01T05:44:54.065Z",
+    "updatedAt": "2026-07-01T05:44:54.066Z"
+  }
+]
