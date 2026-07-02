@@ -119,5 +119,160 @@
     "tokenExtract": null,
     "createdAt": "2026-07-01T05:44:54.065Z",
     "updatedAt": "2026-07-01T05:44:54.066Z"
+  },
+  {
+    "id": "mr1rxgna",
+    "name": "get_data_usage",
+    "description": "Get data usages by user",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "GET",
+    "path": "/GetDataUsage",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "{{requestauthtoken}}"
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [],
+    "tokenExtract": null,
+    "createdAt": "2026-07-01T07:48:30.229Z",
+    "updatedAt": "2026-07-01T07:48:30.229Z"
+  },
+  {
+    "id": "mr31j0d4",
+    "name": "get_order_history",
+    "description": "Get Order History list and and based on ORDER_NO get any details of partuclar Order",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "GET",
+    "path": "/GetOrders?orderStatus=INP&page=1&pageSize=1",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "{{requestauthtoken}}"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "MobUserID",
+        "value": "+bcS0u5e9x2jaTvrJj2AYg=="
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [],
+    "tokenExtract": null,
+    "successCheck": null,
+    "createdAt": "2026-07-02T05:04:58.274Z",
+    "updatedAt": "2026-07-02T05:04:58.274Z"
+  },
+  {
+    "id": "mr31kmff",
+    "name": "get_saved_addresses",
+    "description": "Get All saved Addresses, Already Saved Address",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "GET",
+    "path": "/GetAddresses",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "{{requestauthtoken}}"
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [],
+    "tokenExtract": null,
+    "successCheck": null,
+    "createdAt": "2026-07-02T05:06:13.554Z",
+    "updatedAt": "2026-07-02T05:06:13.555Z"
+  },
+  {
+    "id": "mr32r90s",
+    "name": "get_plans",
+    "description": "Fetch all available plan for SIM purchase, User can see all plan and compare the plans",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "GET",
+    "path": "/GetPlans",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "{{requestauthtoken}}"
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [],
+    "tokenExtract": null,
+    "successCheck": null,
+    "createdAt": "2026-07-02T05:39:22.435Z",
+    "updatedAt": "2026-07-02T05:39:22.436Z"
   }
 ]

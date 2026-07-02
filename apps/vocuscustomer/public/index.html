@@ -220,12 +220,18 @@
     </div>
   </div>
 
-  <!-- Provider + Module toggles -->
+  <!-- Provider + Module toggles + Project switcher -->
   <div class="toggles">
     <span class="tg-label">AI:</span>
     <button class="tg-btn" data-p="groq"   onclick="setProvider('groq')">Groq</button>
     <button class="tg-btn" data-p="claude" onclick="setProvider('claude')">Claude</button>
     <button class="tg-btn" data-p="openai" onclick="setProvider('openai')">OpenAI</button>
+    <div class="tg-sep"></div>
+    <span class="tg-label">Project:</span>
+    <select id="projectSelect" onchange="switchProject(this.value)"
+      style="font-size:11.5px;padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--muted);cursor:pointer;outline:none;font-family:inherit;">
+      <option value="">Loading…</option>
+    </select>
   </div>
 
   <!-- Messages -->
@@ -269,6 +275,33 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Project switcher ─────────────────────────────────────────────────────────
+let _selectedApp = localStorage.getItem('chat_app') || '';
+
+async function initProjects() {
+  try {
+    const r = await fetch('/apps');
+    if (!r.ok) return;
+    const { apps, current } = await r.json();
+    if (!_selectedApp) { _selectedApp = current; localStorage.setItem('chat_app', current); }
+    const sel = document.getElementById('projectSelect');
+    if (!sel) return;
+    sel.innerHTML = apps.map(a =>
+      `<option value="${a}"${a === _selectedApp ? ' selected' : ''}>${a}</option>`
+    ).join('');
+  } catch {}
+}
+
+function switchProject(appName) {
+  if (appName === _selectedApp) return;
+  _selectedApp = appName;
+  localStorage.setItem('chat_app', appName);
+  chatHistory = [];
+  msgMap = {};
+  document.getElementById('messages').innerHTML = '';
+  appendMessage('bot', `Switched to project: ${appName}. How can I help you?`);
+}
+
 // ── Session management ────────────────────────────────────────────────────────
 const SESSION_KEY = 'vc_session';
 let sessionId = localStorage.getItem(SESSION_KEY);
@@ -315,6 +348,7 @@ async function init() {
     document.getElementById('sDot').classList.add('offline');
   }
   updateProviderBtns();
+  initProjects();
   renderQuick();
   appendMessage('bot', 'Hi! I\'m your Vocus customer assistant. I can help you with your account, plans, and services.\n\nTo get started, just ask me anything or try one of the quick options below.');
 }
@@ -437,6 +471,7 @@ async function sendMsg() {
         history: chatHistory,
         provider: activeProvider,
         sessionId,
+        app: _selectedApp || undefined,
       }),
     });
     const data = await r.json();

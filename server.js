@@ -2,15 +2,41 @@ require('dotenv').config();
 const express    = require('express');
 const cors       = require('cors');
 const path       = require('path');
+const fs         = require('fs');
 const { LLM_PROVIDER, PORT } = require('./src/config');
 const { getCache, setCache }  = require('./src/cache');
 const { getStatus: getKeyStatus } = require('./src/key-manager');
 
-// ── Load app ──────────────────────────────────────────────────────────────────
+// ── Default app ───────────────────────────────────────────────────────────────
 const APP = process.env.APP || 'vocus';
-const { MODULE_TOOLS, MODULE_HISTORY } = require(`./apps/${APP}/config`);
-const allTools    = require(`./apps/${APP}/tools`);
-const executeTool = require(`./apps/${APP}/executors`);
+
+// ── Multi-app module cache ────────────────────────────────────────────────────
+const _appModuleCache = {};
+
+function loadApp(appName) {
+  if (_appModuleCache[appName]) return _appModuleCache[appName];
+  const config   = require(`./apps/${appName}/config`);
+  const tools    = require(`./apps/${appName}/tools`);
+  const executor = require(`./apps/${appName}/executors`);
+  _appModuleCache[appName] = { config, tools, executor };
+  console.log(`[MultiApp] Loaded: ${appName}`);
+  return _appModuleCache[appName];
+}
+
+function getAvailableApps() {
+  try {
+    return fs.readdirSync(path.join(__dirname, 'apps'))
+      .filter(name => {
+        try { require.resolve(path.join(__dirname, 'apps', name, 'config')); return true; }
+        catch { return false; }
+      });
+  } catch { return [APP]; }
+}
+
+// Preload default app at startup
+const { config: { MODULE_TOOLS, MODULE_HISTORY, SYSTEM_PROMPT: DEFAULT_SYSTEM_PROMPT },
+        tools: allTools,
+        executor: executeTool } = loadApp(APP);
 
 const runGroqAgent   = require('./src/agents/groq.agent');
 const runClaudeAgent = require('./src/agents/claude.agent');
@@ -18,34 +44,15 @@ const runOpenAIAgent = require('./src/agents/openai.agent');
 const registry       = require('./src/registry');
 const store          = require('./src/store');
 
-const { SYSTEM_PROMPT: DEFAULT_SYSTEM_PROMPT } = require(`./apps/${APP}/config`);
-
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'apps', APP, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'apps', APP, 'public', 'admin.html')));
 
 console.log(`\n🤖 App: ${APP.toUpperCase()} | LLM: ${LLM_PROVIDER.toUpperCase()}`);
 console.log(`🔧 Tools loaded: ${allTools.length}\n`);
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-async function getToolsForModule(mod) {
-  const dynamicApis   = await registry.load(APP);
-  const dynamicTools  = registry.toTools(dynamicApis);
-  const combinedTools = [...allTools, ...dynamicTools];
-  const allowed = MODULE_TOOLS[mod];
-  if (!allowed) return combinedTools;
-  // dynamic tools always included; static tools filtered by module
-  return combinedTools.filter(t => t._dynamic || allowed.includes(t.name));
-}
-
-// Combined executor: dynamic tools first, then static
-async function runTool(toolName, args, headers) {
-  const dynResult = await registry.executeDynamic(APP, toolName, args);
-  if (dynResult !== null) return dynResult;
-  return executeTool(toolName, args, headers);
-}
 
 function simpleHash(str) {
   let h = 0;
@@ -79,16 +86,32 @@ setInterval(() => {
   });
 }, 5 * 60 * 1000);
 
+// ── Available Apps ────────────────────────────────────────────────────────────
+app.get('/apps', (req, res) => {
+  res.json({ apps: getAvailableApps(), current: APP });
+});
+
 // ── Chat ──────────────────────────────────────────────────────────────────────
 app.post('/chat', rateLimiter, async (req, res) => {
   try {
-    const { message, history = [], provider, module: mod = 'all', sessionId } = req.body;
+    const { message, history = [], provider, module: mod = 'all', sessionId, app: reqApp } = req.body;
     if (!message?.trim()) return res.status(400).json({ error: 'message is required' });
+
+    // Resolve app — requested app overrides default, fall back on error
+    let appName = APP;
+    let appCtx  = loadApp(APP);
+    if (reqApp && reqApp !== APP) {
+      try { appCtx = loadApp(reqApp); appName = reqApp; }
+      catch { /* unknown app — use default */ }
+    }
+
+    const { config: { MODULE_TOOLS: appMT, MODULE_HISTORY: appMH },
+            tools: appAllTools, executor: appExecTool } = appCtx;
 
     const activeProvider = provider || LLM_PROVIDER;
 
     // Trim history to module window, removing orphaned tool_results
-    const windowSize = MODULE_HISTORY[mod] ?? 8;
+    const windowSize = appMH[mod] ?? 8;
     const raw = history.slice(-windowSize);
     const toolUseIds = new Set();
     raw.forEach(m => {
@@ -101,35 +124,78 @@ app.post('/chat', rateLimiter, async (req, res) => {
       return true;
     });
 
-    // Response cache — skip LLM entirely for identical inputs
-    const cacheKey   = `llm:${activeProvider}:${mod}:${simpleHash(message.trim() + JSON.stringify(trimmedHistory))}`;
+    // ── Session state: load tokens NOW (before cache check) ──────────────────
+    // Purpose 1: build cache key that includes auth state (prevent cross-session cache collisions)
+    // Purpose 2: inject live session state into system prompt so the bot knows whether
+    //            the user is already authenticated without needing chat history
+    const sessionTokens  = sessionId ? await store.getSessionTokens(appName, sessionId) : {};
+    const storedTokenKeys = Object.keys(sessionTokens);
+    const isAuthenticated = storedTokenKeys.length > 0;
+
+    // Cache key includes auth state — authenticated / unauthenticated users must never share a cached reply
+    const cacheKey   = `llm:${activeProvider}:${appName}:${mod}:${isAuthenticated ? 'auth' : 'anon'}:${simpleHash(message.trim() + JSON.stringify(trimmedHistory))}`;
     const cachedResp = getCache(cacheKey);
     if (cachedResp) {
-      console.log(`[ResponseCache] HIT ${activeProvider}:${mod} "${message.slice(0, 50)}"`);
+      console.log(`[ResponseCache] HIT ${activeProvider}:${appName}:${mod}:${isAuthenticated ? 'auth' : 'anon'}`);
       return res.json(cachedResp);
     }
 
-    const filteredTools = await getToolsForModule(mod);
-    const messages      = [...trimmedHistory, { role: 'user', content: message }];
+    // Build tool list for this specific app
+    const dynamicApis   = await registry.load(appName);
+    const dynamicTools  = registry.toTools(dynamicApis);
+    const combinedTools = [...appAllTools, ...dynamicTools];
+    const allowed = appMT[mod];
+    const filteredTools = allowed
+      ? combinedTools.filter(t => t._dynamic || allowed.includes(t.name))
+      : combinedTools;
 
-    console.log(`[Chat] ${activeProvider.toUpperCase()} | mod:${mod} | tools:${filteredTools.length} | history:${trimmedHistory.length} | session:${sessionId ? sessionId.slice(0,10)+'…' : 'none'} | "${message}"`);
+    const messages = [...trimmedHistory, { role: 'user', content: message }];
 
-    // Dynamic system prompt (Firestore override, falls back to config default)
-    const dynamicPrompt = await store.getSystemPromptCached(APP);
-    const agentOpts     = dynamicPrompt ? { systemPrompt: dynamicPrompt } : {};
+    console.log(`[Chat] ${activeProvider.toUpperCase()} | app:${appName} | auth:${isAuthenticated ? `yes(${storedTokenKeys.join(',')})` : 'no'} | tools:${filteredTools.length} | history:${trimmedHistory.length} | session:${sessionId ? sessionId.slice(0,10)+'…' : 'none'} | "${message}"`);
 
-    // Session-aware tool runner: injects stored tokens into API calls,
-    // and stores new tokens when a tokenExtract API responds
+    const dynamicPrompt = await store.getSystemPromptCached(appName);
+    const defaultSP     = appCtx.config.SYSTEM_PROMPT || '';
+
+    // Dynamically append live session state to the system prompt.
+    // This tells the bot the current auth status WITHOUT relying on chat history,
+    // so it works correctly even after a page refresh, new conversation, or
+    // when a brand-new API is added to the registry tomorrow.
+    let sessionStateNote = '';
+    if (sessionId) {
+      if (isAuthenticated) {
+        sessionStateNote =
+          `\n\n[CURRENT SESSION STATE: User IS authenticated. ` +
+          `Stored tokens: ${storedTokenKeys.join(', ')}. ` +
+          `These tokens are automatically injected wherever {{tokenName}} appears in API headers — ` +
+          `do NOT ask the user to log in again unless an API returns 401 or 403. ` +
+          `If the user explicitly wants to switch accounts, guide them through the OTP flow — ` +
+          `this will overwrite the stored token.]`;
+      } else {
+        sessionStateNote =
+          `\n\n[CURRENT SESSION STATE: User is NOT authenticated. ` +
+          `No tokens stored for this session. ` +
+          `If any requested service requires login/authentication, ` +
+          `guide the user through the OTP process first before attempting that API call.]`;
+      }
+    }
+
+    const agentOpts = { systemPrompt: (dynamicPrompt || defaultSP) + sessionStateNote };
+
+    // Session-aware tool runner: injects stored tokens, saves extracted ones
     const toolRunner = sessionId
       ? async (toolName, args, headers) => {
-          const tokens = await store.getSessionTokens(APP, sessionId);
-          const dynResult = await registry.executeDynamic(APP, toolName, args, {
-            sessionId, tokens, store, app: APP,
+          const tokens = await store.getSessionTokens(appName, sessionId);
+          const dynResult = await registry.executeDynamic(appName, toolName, args, {
+            sessionId, tokens, store, app: appName,
           });
           if (dynResult !== null) return dynResult;
-          return executeTool(toolName, args, headers);
+          return appExecTool(toolName, args, headers);
         }
-      : runTool;
+      : async (toolName, args, headers) => {
+          const dynResult = await registry.executeDynamic(appName, toolName, args);
+          if (dynResult !== null) return dynResult;
+          return appExecTool(toolName, args, headers);
+        };
 
     let result;
     if (activeProvider === 'claude') {
@@ -140,9 +206,8 @@ app.post('/chat', rateLimiter, async (req, res) => {
       result = await runGroqAgent(messages, {}, filteredTools, toolRunner, agentOpts);
     }
 
-    // Log conversation (fire-and-forget)
     const logId = Date.now().toString(36);
-    store.saveLog(APP, { id: logId, session: sessionId || req.ip, userMsg: message, aiReply: result.reply, provider: activeProvider, module: mod }).catch(() => {});
+    store.saveLog(appName, { id: logId, session: sessionId || req.ip, userMsg: message, aiReply: result.reply, provider: activeProvider, module: mod }).catch(() => {});
 
     const payload = { reply: result.reply, history: result.messages, provider: activeProvider, logId, sessionId: sessionId || undefined };
     setCache(cacheKey, payload, 2 * 60 * 1000);
@@ -160,10 +225,12 @@ app.get('/keys/status',  (req, res) => res.json(getKeyStatus()));
 
 // ── API Registry CRUD ─────────────────────────────────────────────────────────
 app.get('/registry', async (req, res) => {
-  res.json(await registry.load(APP));
+  const appName = req.query.app || APP;
+  res.json(await registry.load(appName));
 });
 
 app.post('/registry', async (req, res) => {
+  const appName = req.query.app || APP;
   const api = req.body;
   if (!api.name || !/^[a-z][a-z0-9_]*$/.test(api.name))
     return res.status(400).json({ error: 'name must be snake_case (lowercase letters, digits, underscores)' });
@@ -174,8 +241,11 @@ app.post('/registry', async (req, res) => {
   if (!api.description)
     return res.status(400).json({ error: 'description is required — the AI uses it to know when to call this API' });
 
-  const reg = await registry.load(APP);
-  if (allTools.find(t => t.name === api.name))
+  let appStaticTools = allTools;
+  try { appStaticTools = loadApp(appName).tools; } catch {}
+
+  const reg = await registry.load(appName);
+  if (appStaticTools.find(t => t.name === api.name))
     return res.status(400).json({ error: `"${api.name}" conflicts with a built-in tool name` });
   if (reg.find(r => r.id !== api.id && r.name === api.name))
     return res.status(400).json({ error: `An API named "${api.name}" already exists` });
@@ -190,21 +260,21 @@ app.post('/registry', async (req, res) => {
   if (existing >= 0) reg[existing] = entry;
   else reg.push(entry);
 
-  await registry.save(APP, reg);
-  console.log(`[Registry] Saved: ${entry.name}`);
+  await registry.save(appName, reg);
+  console.log(`[Registry] Saved: ${entry.name} (app: ${appName})`);
   res.json({ ok: true, api: entry });
 });
 
 app.delete('/registry/:id', async (req, res) => {
-  const reg     = await registry.load(APP);
+  const appName = req.query.app || APP;
+  const reg     = await registry.load(appName);
   const updated = reg.filter(r => r.id !== req.params.id);
   if (updated.length === reg.length)
     return res.status(404).json({ error: 'Not found' });
-  await registry.save(APP, updated);
+  await registry.save(appName, updated);
   res.json({ ok: true });
 });
 
-// Test an API config without saving it
 app.post('/registry/test', async (req, res) => {
   const { api, input, testTokens } = req.body;
   if (!api) return res.status(400).json({ error: 'api config required' });
@@ -218,17 +288,20 @@ app.post('/registry/test', async (req, res) => {
 
 // ── Conversation Logs ─────────────────────────────────────────────────────────
 app.get('/admin/logs', async (req, res) => {
+  const appName = req.query.app || APP;
   const limit = Math.min(parseInt(req.query.limit) || 100, 500);
-  res.json(await store.getLogs(APP, limit));
+  res.json(await store.getLogs(appName, limit));
 });
 
 app.delete('/admin/logs', async (req, res) => {
-  await store.deleteAllLogs(APP);
+  const appName = req.query.app || APP;
+  await store.deleteAllLogs(appName);
   res.json({ ok: true });
 });
 
 app.delete('/admin/logs/:id', async (req, res) => {
-  await store.deleteLog(APP, req.params.id);
+  const appName = req.query.app || APP;
+  await store.deleteLog(appName, req.params.id);
   res.json({ ok: true });
 });
 
@@ -242,32 +315,41 @@ app.post('/feedback', async (req, res) => {
 });
 
 app.get('/admin/feedback', async (req, res) => {
+  const appName = req.query.app || APP;
   const limit = Math.min(parseInt(req.query.limit) || 100, 500);
-  res.json(await store.getFeedback(APP, limit));
+  res.json(await store.getFeedback(appName, limit));
 });
 
 // ── API Call Log ──────────────────────────────────────────────────────────────
 app.get('/admin/apicalls', async (req, res) => {
+  const appName = req.query.app || APP;
   const limit = Math.min(parseInt(req.query.limit) || 100, 200);
-  res.json(await store.getApiCalls(APP, limit));
+  res.json(await store.getApiCalls(appName, limit));
 });
 
 // ── System Prompt ─────────────────────────────────────────────────────────────
 app.get('/admin/prompt', async (req, res) => {
-  const custom = await store.getSystemPrompt(APP);
-  res.json({ prompt: custom || DEFAULT_SYSTEM_PROMPT, isDefault: !custom });
+  const appName = req.query.app || APP;
+  let defaultSP = DEFAULT_SYSTEM_PROMPT;
+  try { defaultSP = loadApp(appName).config.SYSTEM_PROMPT || DEFAULT_SYSTEM_PROMPT; } catch {}
+  const custom = await store.getSystemPrompt(appName);
+  res.json({ prompt: custom || defaultSP, isDefault: !custom });
 });
 
 app.post('/admin/prompt', async (req, res) => {
+  const appName = req.query.app || APP;
   const { prompt } = req.body;
   if (!prompt?.trim()) return res.status(400).json({ error: 'Prompt cannot be empty' });
-  await store.saveSystemPrompt(APP, prompt.trim());
+  await store.saveSystemPrompt(appName, prompt.trim());
   res.json({ ok: true });
 });
 
 app.post('/admin/prompt/reset', async (req, res) => {
-  await store.resetSystemPrompt(APP);
-  res.json({ ok: true, prompt: DEFAULT_SYSTEM_PROMPT });
+  const appName = req.query.app || APP;
+  let defaultSP = DEFAULT_SYSTEM_PROMPT;
+  try { defaultSP = loadApp(appName).config.SYSTEM_PROMPT || DEFAULT_SYSTEM_PROMPT; } catch {}
+  await store.resetSystemPrompt(appName);
+  res.json({ ok: true, prompt: defaultSP });
 });
 
 app.listen(PORT, () => console.log(`✅ Running → http://localhost:${PORT}\n`));

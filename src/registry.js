@@ -208,7 +208,18 @@ async function executeDynamic(app, toolName, args, sessionCtx = {}) {
       }
     }
 
-    const success = response.status < 400;
+    // Body-level success check: treat as failure even if HTTP status is 2xx
+    let bodyFailed = false;
+    if (api.successCheck && body != null && typeof body === 'object') {
+      const { field, eq } = api.successCheck;
+      const fieldVal = getByPath(body, field);
+      if (fieldVal !== undefined && fieldVal !== eq) {
+        bodyFailed = true;
+        console.log(`[Registry] successCheck failed for ${toolName}: ${field}=${JSON.stringify(fieldVal)} (expected ${JSON.stringify(eq)})`);
+      }
+    }
+
+    const success = response.status < 400 && !bodyFailed;
 
     // Log every API call so admin can see what hit and what came back
     if (sessionCtx.store) {

@@ -549,6 +549,18 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
+      <span class="nav-section">Project</span>
+      <div style="padding:0 4px 10px;display:flex;flex-direction:column;gap:4px;">
+        <select id="adminAppSelect" onchange="switchAdminApp(this.value)"
+          style="width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--border);
+                 border-radius:var(--r-sm);background:var(--bg);color:var(--ink);
+                 cursor:pointer;outline:none;font-family:inherit;">
+          <option value="">Loading…</option>
+        </select>
+        <div style="font-size:10px;color:var(--sub);padding:0 2px;">
+          Active: <strong id="adminAppLabel" style="color:var(--ink)">—</strong>
+        </div>
+      </div>
       <span class="nav-section">Menu</span>
 
       <button class="nav-item active" data-tab="apis" onclick="switchTab('apis')">
@@ -864,8 +876,51 @@
 const _isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 const RENDER_API = (_isLocal || location.hostname.includes('onrender.com')) ? '' : 'https://node-api-demo-j7dk.onrender.com';
 if (RENDER_API) {
-  const _fetch = window.fetch.bind(window);
-  window.fetch = (url, opts) => _fetch(typeof url === 'string' && url.startsWith('/') ? RENDER_API + url : url, opts);
+  const _fetch0 = window.fetch.bind(window);
+  window.fetch = (url, opts) => _fetch0(typeof url === 'string' && url.startsWith('/') ? RENDER_API + url : url, opts);
+}
+
+// ── Project switcher ────────────────────────────────────────────────────────
+let _adminApp = localStorage.getItem('cf_admin_app') || '';
+
+// Auto-append ?app=<project> to all relative API fetch calls
+(function () {
+  const _origFetch = window.fetch.bind(window);
+  window.fetch = function (url, opts) {
+    if (typeof url === 'string' && _adminApp) {
+      const API_PREFIXES = ['/registry', '/admin', '/feedback', '/keys', '/apps', '/provider'];
+      if (API_PREFIXES.some(p => url === p || url.startsWith(p + '?') || url.startsWith(p + '/'))) {
+        const sep = url.includes('?') ? '&' : '?';
+        url = url + sep + 'app=' + encodeURIComponent(_adminApp);
+      }
+    }
+    return _origFetch(url, opts);
+  };
+})();
+
+async function initAppSwitcher() {
+  try {
+    const r = await fetch('/apps');
+    if (!r.ok) return;
+    const { apps, current } = await r.json();
+    if (!_adminApp) { _adminApp = current; localStorage.setItem('cf_admin_app', _adminApp); }
+    const sel = document.getElementById('adminAppSelect');
+    if (!sel) return;
+    sel.innerHTML = apps.map(a =>
+      `<option value="${a}"${a === _adminApp ? ' selected' : ''}>${a}</option>`
+    ).join('');
+    document.getElementById('adminAppLabel').textContent = _adminApp;
+  } catch {}
+}
+
+function switchAdminApp(appName) {
+  _adminApp = appName;
+  localStorage.setItem('cf_admin_app', appName);
+  document.getElementById('adminAppLabel').textContent = appName;
+  // Reload current tab
+  const active = document.querySelector('.nav-item.active')?.dataset?.tab;
+  if (active) switchTab(active);
+  else init();
 }
 
 // ── Auth ────────────────────────────────────────────────────────────────────
@@ -909,7 +964,7 @@ function doLogout() {
 
 function showAdmin() {
   document.getElementById('adminApp').style.display = 'block';
-  init();
+  initAppSwitcher().then(() => init());
 }
 
 // ── Tab switching ────────────────────────────────────────────────────────────
@@ -1105,6 +1160,36 @@ function buildForm(api) {
 
     <div class="card">
       <div class="card-hd">
+        <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg></div>
+        <div class="card-hd-t"><h3>Response Success Check <span style="font-size:11px;color:var(--muted);font-weight:400">(optional)</span></h3><p>Detect failure from the response body — even when HTTP status is 200</p></div>
+      </div>
+      <div class="card-body">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:12px">
+          <input type="checkbox" id="sc-enabled" onchange="toggleSuccessCheck()" ${a.successCheck ? 'checked' : ''}/>
+          Check a response field to confirm the API succeeded
+        </label>
+        <div id="scFields" style="display:${a.successCheck ? 'block' : 'none'}">
+          <div class="fg c2">
+            <div class="f">
+              <label>Response field path</label>
+              <input type="text" id="sc-field" class="mono" value="${esc(String(a.successCheck?.field||'Status'))}" placeholder="Status or data.code"/>
+              <span class="hint">JSON key path in the response body (e.g. <code>Status</code> or <code>data.code</code>)</span>
+            </div>
+            <div class="f">
+              <label>Expected value = success</label>
+              <input type="text" id="sc-eq" class="mono" value="${esc(String(a.successCheck?.eq ?? '0'))}" placeholder="0"/>
+              <span class="hint">If the field's value ≠ this, the API call is treated as <strong>failed</strong></span>
+            </div>
+          </div>
+          <div style="margin-top:6px;padding:8px 10px;background:var(--bg2);border-radius:var(--r-sm);font-size:12px;color:var(--muted)">
+            Example: field <code>Status</code> eq <code>0</code> → if response is <code>{"Status":7}</code> the bot will report API failure instead of success.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
         <div class="card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
         <div class="card-hd-t"><h3>Parameters</h3><p>Inputs the AI collects from the user before calling this endpoint</p></div>
       </div>
@@ -1257,6 +1342,25 @@ function getTokenExtract() {
   };
 }
 
+function toggleSuccessCheck() {
+  const enabled = document.getElementById('sc-enabled')?.checked;
+  const fields  = document.getElementById('scFields');
+  if (fields) fields.style.display = enabled ? 'block' : 'none';
+}
+
+function getSuccessCheck() {
+  const enabled = document.getElementById('sc-enabled')?.checked;
+  if (!enabled) return null;
+  const field = document.getElementById('sc-field')?.value.trim() || 'Status';
+  const raw   = document.getElementById('sc-eq')?.value.trim() ?? '0';
+  // Parse eq as number if it looks numeric, boolean if "true"/"false", else string
+  const eq = /^-?\d+(\.\d+)?$/.test(raw) ? Number(raw)
+           : raw === 'true'               ? true
+           : raw === 'false'              ? false
+           : raw;
+  return { field, eq };
+}
+
 function getHdrs() {
   return [...document.querySelectorAll('#hdrList .dyn-row')].map(r=>({key:r.querySelector('.hk').value.trim(), value:r.querySelector('.hv').value})).filter(h=>h.key);
 }
@@ -1300,6 +1404,7 @@ function collect() {
     path:document.getElementById('f-path')?.value.trim()||'/',
     headers:getHdrs(), auth:getAuth(), params:getParams(),
     tokenExtract:getTokenExtract(),
+    successCheck:getSuccessCheck(),
   };
 }
 
