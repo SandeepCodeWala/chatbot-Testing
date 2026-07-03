@@ -137,6 +137,11 @@ async function _executeRaw(api, input = {}, sessionCtx = {}) {
     headers['Authorization'] = `Basic ${encoded}`;
   }
 
+  const baseUrl = (api.baseUrl || '').replace(/\/$/, '');
+  const url     = baseUrl + urlPath;
+  const method  = (api.method || 'GET').toUpperCase();
+  const isBodyMethod = ['POST', 'PUT', 'PATCH'].includes(method);
+
   // Route each input param to the right place (path / query / body / header)
   for (const [key, value] of Object.entries(input)) {
     const def = (api.params || []).find(p => p.name === key);
@@ -146,13 +151,12 @@ async function _executeRaw(api, input = {}, sessionCtx = {}) {
       case 'query':  queryParams[key] = value; break;
       case 'body':   bodyParams[key] = value; break;
       case 'header': headers[key] = String(value); break;
-      default:       queryParams[key] = value;
+      default:
+        // POST/PUT/PATCH with no location → body; GET/DELETE → query
+        if (isBodyMethod) bodyParams[key] = value;
+        else queryParams[key] = value;
     }
   }
-
-  const baseUrl = (api.baseUrl || '').replace(/\/$/, '');
-  const url     = baseUrl + urlPath;
-  const method  = (api.method || 'GET').toUpperCase();
   const hasBody = ['POST', 'PUT', 'PATCH'].includes(method);
 
   return axios({

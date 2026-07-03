@@ -274,5 +274,93 @@
     "successCheck": null,
     "createdAt": "2026-07-02T05:39:22.435Z",
     "updatedAt": "2026-07-02T05:39:22.436Z"
+  },
+  {
+    "id": "mr3avrnd",
+    "name": "add_update_contact",
+    "description": "User can add new contact or also can update any previous saved contact. New contact adding or Old contact update use this API. Based on this CUST_CONTACT_ID you can update any particular contact and Empty in case of adding new contact",
+    "baseUrl": "https://vocus-mob-customer360-preprod.invia2.com.au/Api/NativeApp/V1",
+    "method": "POST",
+    "path": "/AddUpdateContact",
+    "headers": [
+      {
+        "key": "AuthKey",
+        "value": "API-REQUEST-VERIFICATION-TOKEN"
+      },
+      {
+        "key": "AuthToken",
+        "value": "7E00C1CB-D30D-4D1B-925D-75CF197B929B"
+      },
+      {
+        "key": "Provider",
+        "value": "I+mtH/MW363bcg+hwKrTWg=="
+      },
+      {
+        "key": "uid",
+        "value": "xl8hPIpVGIuKGdq/AIx4NQ=="
+      },
+      {
+        "key": "requestauthtoken",
+        "value": "{{requestauthtoken}}"
+      }
+    ],
+    "auth": {
+      "type": "none"
+    },
+    "params": [
+      {
+        "name": "UID",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "UID take from get_user_info tool"
+      },
+      {
+        "name": "CUST_CONTACT_ID",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "Empty in case of adding new contact"
+      },
+      {
+        "name": "EMAIL",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "User Email"
+      },
+      {
+        "name": "PHONE",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "User Phone Number"
+      },
+      {
+        "name": "USER_ID",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "UID take from get_user_info tool"
+      },
+      {
+        "name": "FIRST_NAME",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "First name of the user"
+      },
+      {
+        "name": "LAST_NAME",
+        "location": "body",
+        "type": "string",
+        "required": true,
+        "description": "last name of the user"
+      }
+    ],
+    "tokenExtract": null,
+    "successCheck": null,
+    "createdAt": "2026-07-02T09:26:50.091Z",
+    "updatedAt": "2026-07-02T09:26:50.092Z"
   }
 ]
